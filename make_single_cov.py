@@ -40,9 +40,6 @@ training_data = np.delete(data,box_index,0)
 mf_emulator = mfe.mf_emulator("test")
 mf_emulator.train(training_cosmologies,training_data)
 
-#Predict the TMF parameters
-predicted = mf_emulator.predict_parameters(test_cosmo)
-
 #Read in the data
 MF_data = np.genfromtxt("../../all_MF_data/building_MF_data/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"%(box_index,box_index,z_index))
 lM_bins = MF_data[:,:2]
