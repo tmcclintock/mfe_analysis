@@ -8,6 +8,7 @@ import numpy as np
 import tinker_mass_function as TMF
 sys.path.insert(0,"../Mass-Function-Emulator/")
 import mf_emulator as mfe
+import matplotlib.pyplot as plt
 
 #Scale factors and redshifts
 scale_factors = np.array([0.25,0.333333,0.5,0.540541,0.588235,0.645161,0.714286,0.8,0.909091,1.0])
@@ -67,8 +68,9 @@ for box in xrange(0,N_cosmologies):
         MF_data = np.genfromtxt("../../all_MF_data/building_MF_data/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"%(box,box,zind))
         lM_bins = MF_data[:,:2]
         lM = np.mean(lM_bins,1)
-        N_data_array.append(MF_data[:,2])
-        logN_data_array.append(np.log(MF_data[:,2]))
+        N_data = MF_data[:,2]
+        N_data_array.append(N_data)
+        logN_data_array.append(np.log(N_data))
 
         #Get the biases
         bias = np.zeros_like(lM)
@@ -86,11 +88,11 @@ for box in xrange(0,N_cosmologies):
         logcov_emu = np.diag(1./N_emu)
         for i in xrange(0,len(lM)):
             for j in xrange(0,len(lM)):
-                if i==j: continue
-                cov_emu[i,j] = bias[i]*bias[j]*N_emu[i]*N_emu[j]*sigmaR**2
-                logcov_emu[i,j] = bias[i]*bias[j]*sigmaR**2
+                cov_emu[i,j] += bias[i]*bias[j]*N_emu[i]*N_emu[j]*sigmaR**2
+                logcov_emu[i,j] += bias[i]*bias[j]*sigmaR**2
                 continue #end i
             continue #end j
+
         cov_emu_array.append(cov_emu)
         logcov_emu_array.append(logcov_emu)
         np.savetxt("emu_covs/cov_emu_%03d_Z%d.txt"%(box,zind),cov_emu)

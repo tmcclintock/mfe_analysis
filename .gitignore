@@ -1,3 +1,6 @@
+# All the emulator covariance matrices
+emu_covs/*
+
 # Emacs backup files
 *~
 
