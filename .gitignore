@@ -1,3 +1,9 @@
+# Pickled files
+*.p
+
+# The old code
+old_code/emu_covs
+
 # All the emulator covariance matrices
 emu_covs/*
 
