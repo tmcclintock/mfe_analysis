@@ -5,7 +5,8 @@ This is Figure 2.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-plt.rc('text', usetex=True, fontsize=20)
+plt.rc('text', usetex=True)
+plt.rc('font', size=20)
 import tinker_mass_function as TMF
 import cosmocalc as cc
 from setup_routines import *
@@ -25,9 +26,7 @@ colors = get_colors()
 
 #This contains our parameterization
 name = 'dfg'
-base_dir = "../fit_mass_functions/output/%s/"%name
-base_save = base_dir+"%s_"%name
-best_fit_models = np.loadtxt(base_save+"bests.txt")
+best_fit_models, mean_models, err_models = get_all_fits(name)
 
 def get_bG(cosmo_dict, a, Masses):
     return cc.growth_function(a)*np.array([cc.tinker2010_bias(Mi, a, 200) for Mi in Masses])
