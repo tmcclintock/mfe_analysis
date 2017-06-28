@@ -37,13 +37,7 @@ for i in range(0,1):
     cosmo_dict = get_cosmo_dict(i)
 
     for j in range(N_z):
-        #First plot the data.
-        data = np.loadtxt(datapath%(i, i, j))
-        lM_bins = data[:,:2]
-        lM = np.mean(data[:, :2], 1)
-        N = data[:,2]
-        cov = np.loadtxt(covpath%(i, i, j))
-        err = np.sqrt(np.diagonal(cov))
+        lM_bins, lM, N, err, cov = get_sim_data(i,j)
         axarr[0].errorbar(lM, N, err, marker='.', ls='', c=colors[j], alpha=1.0, label=r"$z=%.1f$"%redshifts[j])
 
         #Now get the BF and plot it.

@@ -65,22 +65,16 @@ for i in range(0,1):
     emu_model = predict_parameters(test_cosmo, emu_list)
 
     for j in range(0,N_z):
-        #First get the data.
-        data = np.loadtxt(datapath%(i, i, j))
-        lM_bins = data[:,:2]
-        lM = np.mean(data[:, :2], 1)
-        N = data[:,2]
-        cov = np.loadtxt(covpath%(i, i, j))
-        err = np.sqrt(np.diagonal(cov))
+        lM_bins, lM, N, err, cov = get_sim_data(i,j)
+        axarr[0].errorbar(lM, N, err, marker='.', ls='', c=colors[j], alpha=1.0, label=r"$z=%.1f$"%redshifts[j])
+
         #Get emulated curves
         TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
         d,e,f,g,B = get_params(emu_model, scale_factors[j])
         TMF_model.set_parameters(d,e,f,g,B)
         N_bf = volume * TMF_model.n_in_bins(lM_bins)
         bG = get_bG(cosmo_dict, scale_factors[j], 10**lM)
-        delta0 = (N-N_bf)/(N_bf*bG)
 
-        axarr[0].errorbar(lM, N, err, marker='.', ls='', c=colors[j], alpha=1.0, label=r"$z=%.1f$"%redshifts[j])
         axarr[0].plot(lM, N_bf, ls='--', c=colors[j], alpha=1.0)
         dN_N = (N-N_bf)/N_bf
         dN_NbG = dN_N/bG

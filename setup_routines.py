@@ -95,3 +95,14 @@ def get_rotated_fits(name='dfg'):
     err_models = np.sqrt(np.loadtxt(base_save+"vars.txt"))
     R = np.genfromtxt(base_dir+"R_matrix.txt")
     return [mean_models, err_models, R]
+
+#Routines for getting sim data
+def get_sim_data(sim_index, z_index):
+    data = np.loadtxt(datapath%(sim_index, sim_index, z_index))
+    lM_bins = data[:,:2]
+    lM = np.mean(lM_bins, 1)
+    N = data[:,2]
+    cov = np.loadtxt(covpath%(sim_index, sim_index, z_index))
+    err = np.sqrt(np.diagonal(cov))
+    return lM_bins, lM, N, err, cov
+
