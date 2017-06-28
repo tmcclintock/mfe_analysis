@@ -87,3 +87,11 @@ def get_all_fits(name='dfg'):
     mean_models = np.loadtxt(base_save+"means.txt")
     err_models = np.sqrt(np.loadtxt(base_save+"vars.txt"))
     return [best_fit_models, mean_models, err_models]
+
+def get_rotated_fits(name='dfg'):
+    base_dir = "../fit_mass_functions/output/%s_rotated/"%name
+    base_save = base_dir+"rotated_%s_"%name
+    mean_models = np.loadtxt(base_save+"means.txt")
+    err_models = np.sqrt(np.loadtxt(base_save+"vars.txt"))
+    R = np.genfromtxt(base_dir+"R_matrix.txt")
+    return [mean_models, err_models, R]
