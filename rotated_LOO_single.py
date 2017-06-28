@@ -18,8 +18,7 @@ def train(training_cosmos, training_data, training_errs):
     for i in range(N_emulators):
         y = training_data[:, i]
         yerr = training_errs[:, i]
-        emu = emulator.Emulator(name="emu%d"%i, xdata=training_cosmos, 
-                                ydata=y, yerr=yerr)
+        emu = emulator.Emulator(name="emu%d"%i, xdata=training_cosmos, ydata=y, yerr=yerr)
         emu.train()
         emulator_list.append(emu)
     return emulator_list
@@ -34,7 +33,6 @@ y0label = r"$N/[{\rm Gpc}^3\  \log{\rm M}]$"
 y1label = r"$\%\ {\rm Diff}$"
 #y1label = r"$\frac{N-N_{emu}}{N_{emu}bG}$"
 
-base, datapath, covpath = get_basepaths()
 scale_factors, redshifts = get_sf_and_redshifts()
 volume = get_volume()
 N_z = len(scale_factors)
@@ -46,8 +44,6 @@ mean_models, err_models, R = get_rotated_fits(name)
 
 def get_bG(cosmo_dict, a, Masses):
     return cc.growth_function(a)*np.array([cc.tinker2010_bias(Mi, a, 200) for Mi in Masses])
-
-
 
 for i in range(0,1):
     fig, axarr = plt.subplots(2, sharex=True)
@@ -91,7 +87,7 @@ for i in range(0,1):
     axarr[0].set_yscale('log')
     axarr[0].set_ylim(1, axarr[0].get_ylim()[1])
     axarr[1].set_ylim(-18, 18)
-    axarr[1].set_xlim(12.9, 15)
+    #axarr[1].set_xlim(12.9, 15)
     leg = axarr[0].legend(loc=0, fontsize=6, numpoints=1, frameon=False)
     leg.get_frame().set_alpha(0.5)
     plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.0)

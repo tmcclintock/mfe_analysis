@@ -16,8 +16,6 @@ y0label = r"$N/[{\rm Gpc}^3\  \log_{10}{\rm M_\odot}/h]$"
 y1label = r"$\%\ {\rm Diff}$"
 y2label = r"$\frac{N-N_{bf}}{N_{bf}bG}$"
 
-base, datapath, covpath = get_basepaths()
-
 scale_factors, redshifts = get_sf_and_redshifts()
 volume = get_volume()
 N_z = len(scale_factors)

@@ -31,7 +31,6 @@ xlabel  = r"$\log_{10}M\ [{\rm M_\odot}/h]$"
 y0label = r"$N/[{\rm Gpc}^3\  \log_{10}{\rm M_\odot}/h]$"
 y1label = r"$\%\ {\rm Diff}$"
 y2label = r"$\frac{N-N_{emu}}{N_{emu}bG}$"
-base, datapath, covpath = get_basepaths()
 scale_factors, redshifts = get_sf_and_redshifts()
 volume = get_volume()
 N_z = len(scale_factors)
@@ -77,7 +76,7 @@ for i in range(0,1):
         edN_NbG = err/N_bf/bG
         pd  = 100.*dN_N
         pde = 100.*err/N_bf
-        axarr[1].errorbar(lM, pd, pde, marker='.', ls='', c=colors[j], alpha=1.0)
+        axarr[1].errorbar(lM, pd, pde, marker='.',ls='',c=colors[j],alpha=1.0)
         #axarr[1].errorbar(lM, dN_NbG, edN_NbG, marker='.', ls='', c=colors[j], alpha=1.0)
     axarr[1].axhline(0, c='k', ls='-', zorder=-1)
 
