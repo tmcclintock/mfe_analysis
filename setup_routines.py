@@ -5,11 +5,19 @@ get the cosmology, get redshifts, etc.
 import numpy as np
 import matplotlib.pyplot as plt
 
+#Paths to the building boxes
 base = "../Mass-Function-Emulator/test_data/"
 datapath = base+"N_data/Box%03d_full/Box%03d_full_Z%d.txt"
 covpath  = base+"covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 def get_basepaths():
     return [base, datapath, covpath]
+
+#Paths to the test boxes
+base2 = "../../all_MF_data/Test_NM_data/averaged_mf_data/"
+datapath2 = base2+"full_mf_data/TestBox%03d/TestBox%03d_mean_Z%d.txt"
+covpath2  = base2+"covariances/TestBox%03d_cov/TestBox%03d_cov_Z%d.txt"
+def get_testbox_paths():
+    return [base2, datapath2, covpath2]
 
 #Scale factors and redshifts of the sim
 scale_factors = np.array([0.25, 0.333333, 0.5, 0.540541, 0.588235, 
@@ -28,10 +36,19 @@ def get_sf_and_redshifts():
 def get_volume():
     return volume
 
+testbox_cosmos = np.genfromtxt("testbox_cosmos.txt")
 cosmologies = np.genfromtxt("cosmos.txt")
 
 def get_cosmo_dict(index):
     num,ombh2,omch2,w0,ns,ln10As,H0,Neff,sigma8 = cosmologies[index]
+    h = H0/100.
+    Ob,Om = ombh2/(h**2), ombh2/(h**2)+omch2/(h**2)
+    cosmo_dict = {"om":Om, "ob":Ob, "ol":1-Om, "ok":0.0, "h":h, 
+                  "s8":sigma8, "ns":ns, "w0":w0, "wa":0.0}
+    return cosmo_dict
+
+def get_testbox_cosmo_dict(index):
+    ombh2,omch2,w0,ns,ln10As,H0,Neff,sigma8 = testbox_cosmos[index]
     h = H0/100.
     Ob,Om = ombh2/(h**2), ombh2/(h**2)+omch2/(h**2)
     cosmo_dict = {"om":Om, "ob":Ob, "ol":1-Om, "ok":0.0, "h":h, 
@@ -98,6 +115,7 @@ def get_rotated_fits(name='dfg'):
 
 #Routines for getting sim data
 def get_sim_data(sim_index, z_index):
+    base, datapath, covpath = get_basepaths()
     data = np.loadtxt(datapath%(sim_index, sim_index, z_index))
     lM_bins = data[:,:2]
     lM = np.mean(lM_bins, 1)
@@ -106,3 +124,17 @@ def get_sim_data(sim_index, z_index):
     err = np.sqrt(np.diagonal(cov))
     return lM_bins, lM, N, err, cov
 
+def get_testbox_data(sim_index, z_index):
+    base, datapath, covpath = get_testbox_paths()
+    data = np.loadtxt(datapath%(sim_index, sim_index, z_index))
+    N = data[:,2]
+    goodinds = N>0
+    data = data[goodinds]
+    lM_bins = data[:,:2]
+    lM = np.mean(lM_bins, 1)
+    N = data[:,2]
+    cov = np.loadtxt(covpath%(sim_index, sim_index, z_index))
+    cov = cov[goodinds]
+    cov = cov[:,goodinds]
+    err = np.sqrt(np.diagonal(cov))
+    return lM_bins, lM, N, err, cov
