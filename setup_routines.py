@@ -62,6 +62,9 @@ def get_building_cosmos(remove_As=True):
     building_cosmos = np.delete(building_cosmos, -1, 0)#39 is broken
     return building_cosmos
 
+def get_testbox_cosmos():
+    return np.delete(testbox_cosmos, 4, 1) #Delete ln10As
+
 """
 This gets the parameters. the default name is 'dfg', which is the
 model from which we will write the paper. Other routines
