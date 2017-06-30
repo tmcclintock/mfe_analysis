@@ -27,8 +27,10 @@ def train(training_cosmos, training_data, training_errs):
 def predict_parameters(cosmology, emu_list):
     params = np.array([emu.predict_one_point(cosmology)[0] for emu in emu_list])
     return np.dot(R, params)
+Xisnu = True
+if Xisnu: xlabel = r"$\nu$"
+else: xlabel  = r"$\log_{10}M\ [{\rm M_\odot}/h]$"
 
-xlabel  = r"$\log_{10}M\ [{\rm M_\odot}/h]$"
 y0label = r"$N/[{\rm Gpc}^3\  \log_{10}{\rm M_\odot}/h]$"
 y0label = r"$N/[{\rm Gpc}^3\  \log{\rm M}]$"
 y1label = r"$\%\ {\rm Diff}$"
@@ -45,6 +47,9 @@ mean_models, err_models, R = get_rotated_fits(name)
 
 def get_bG(cosmo_dict, a, Masses):
     return cc.growth_function(a)*np.array([cc.tinker2010_bias(Mi, a, 200) for Mi in Masses])
+
+def get_nu(a, Masses):
+    return 1.686/np.array([cc.sigmaMtophat(Mi, a) for Mi in Masses])
 
 for i in range(0,1):
     fig, axarr = plt.subplots(2, sharex=True)
@@ -63,7 +68,9 @@ for i in range(0,1):
 
     for j in range(0,N_z):
         lM_bins, lM, N, err, cov = get_sim_data(i,j)
-        axarr[0].errorbar(lM, N, err, marker='.', ls='', c=colors[j], alpha=1.0, label=r"$z=%.1f$"%redshifts[j])
+        nu = get_nu(scale_factors[j], 10**lM)
+        if Xisnu: domain = nu
+        else: domain = lM
 
         #Get emulated curves
         TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
@@ -72,14 +79,16 @@ for i in range(0,1):
         N_bf = volume * TMF_model.n_in_bins(lM_bins)
         bG = get_bG(cosmo_dict, scale_factors[j], 10**lM)
 
-        axarr[0].plot(lM, N_bf, ls='--', c=colors[j], alpha=1.0)
+
         dN_N = (N-N_bf)/N_bf
         dN_NbG = dN_N/bG
         edN_NbG = err/N_bf/bG
         pd  = 100.*dN_N
         pde = 100.*err/N_bf
-        axarr[1].errorbar(lM, pd, pde, marker='.', ls='', c=colors[j], alpha=1.0)
-        #axarr[1].errorbar(lM, dN_NbG, edN_NbG, marker='.', ls='', c=colors[j], alpha=1.0)
+        axarr[0].errorbar(domain, N, err, marker='.', ls='', c=colors[j], alpha=1.0, label=r"$z=%.1f$"%redshifts[j])
+        axarr[0].plot(domain, N_bf, ls='--', c=colors[j], alpha=1.0)
+        axarr[1].errorbar(domain, pd, pde, marker='.', ls='', c=colors[j], alpha=1.0)
+        #axarr[1].errorbar(domain, dN_NbG, edN_NbG, marker='.', ls='', c=colors[j], alpha=1.0)
     axarr[1].axhline(0, c='k', ls='-', zorder=-1)
 
     axarr[1].set_xlabel(xlabel)

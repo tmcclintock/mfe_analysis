@@ -29,8 +29,10 @@ def predict_parameters(cosmology, emu_list):
     return np.dot(R, params)
 
 xlabel = r"$\nu$"
-y0label = r"$\Delta=\frac{N}{N_{emu}}-1-bG$"
-y1label = r"$\%\ {\rm Diff}=\frac{N}{N_{emu}}$"
+y0label = r"$\Delta=\frac{N}{N_{emu}bG}-1-\frac{1}{bG}$"
+y0label = ''
+#y1label = r"$\%\ {\rm Diff}=\frac{N}{N_{emu}}$"
+y1label = r"$\Delta N/N_{emu}$"
 
 scale_factors, redshifts = get_sf_and_redshifts()
 volume = get_volume()
@@ -47,7 +49,7 @@ def get_bG(a, Masses):
 def get_nu(a, Masses):
     return 1.686/np.array([cc.sigmaMtophat(Mi, a) for Mi in Masses])
 
-for i in range(0,1):
+for i in range(0,5):
     fig, axarr = plt.subplots(2, sharex=True)
     cosmo_dict = get_cosmo_dict(i)
 
@@ -71,20 +73,19 @@ for i in range(0,1):
         TMF_model.set_parameters(d,e,f,g,B)
         N_bf = volume * TMF_model.n_in_bins(lM_bins)
         bG = get_bG(scale_factors[j], 10**lM)
-        Delta = N/N_bf - 1 - bG
-        Delta_err = err/N_bf
-        nu = get_nu(scale_factors[j], 10**lM)
+        pd = (N-N_bf)/N_bf
+        pde  = err/N_bf
+        Delta = pd/bG - 1 
+        Deltae = pde/bG
+        nu = get_nu(scale_factors[j], 10**lM)        
         
-        pd = 100.*(N/N_bf - 1)
-        pde = 100.*Delta_err
-
-        axarr[0].errorbar(nu, Delta, Delta_err, c=colors[j], marker='.',ls='')
+        axarr[0].errorbar(nu, Delta, Deltae, c=colors[j], marker='.',ls='')
         axarr[1].errorbar(nu, pd, pde, c=colors[j], marker='.',ls='')
     axarr[1].axhline(0, c='k', ls='-', zorder=-1)
 
     axarr[1].set_xlabel(xlabel)
     axarr[0].set_ylabel(y0label)
     axarr[1].set_ylabel(y1label)
-    axarr[1].set_ylim(-18, 18)
+    axarr[1].set_ylim(-.18, .18)
     plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.3)
     plt.show()
