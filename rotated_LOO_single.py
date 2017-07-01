@@ -12,7 +12,7 @@ import sys, os, emulator
 import cosmocalc as cc
 from setup_routines import *
 
-Xisnu = True
+Xisnu = False
 if Xisnu: xlabel = r"$\nu$"
 else: xlabel  = r"$\log_{10}M\ [{\rm M_\odot}/h]$"
 
@@ -48,8 +48,8 @@ for i in range(0,1):
     training_errs   = np.delete(err_models, i, 0)
 
     #Train the emulators
-    emu_list = train(training_cosmos, training_data, training_errs)
-    emu_model = predict_parameters(test_cosmo, emu_list, R)
+    emu_list = train(training_cosmos, training_data, training_errs, use_george=True)
+    emu_model = predict_parameters(test_cosmo, emu_list, training_data, R=R, use_george=True)
 
     for j in range(0,N_z):
         lM_bins, lM, N, err, cov = get_sim_data(i,j)
