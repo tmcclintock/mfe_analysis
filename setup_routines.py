@@ -4,6 +4,7 @@ get the cosmology, get redshifts, etc.
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import sys, os, emulator
 
 #Paths to the building boxes
 base = "../Mass-Function-Emulator/test_data/"
@@ -141,3 +142,25 @@ def get_testbox_data(sim_index, z_index):
     cov = cov[:,goodinds]
     err = np.sqrt(np.diagonal(cov))
     return lM_bins, lM, N, err, cov
+
+#################################
+# Routines for getting emulator data
+#################################
+def train(training_cosmos, training_data, training_errs, use_george=False):
+    N_cosmos = len(training_cosmos)
+    N_emulators = training_data.shape[1]
+    emulator_list = []
+    for i in range(N_emulators):
+        y = training_data[:, i]
+        yerr = training_errs[:, i]
+        emu = emulator.Emulator(name="emu%d"%i, xdata=training_cosmos, 
+                                ydata=y, yerr=yerr)
+        emu.train()
+        emulator_list.append(emu)
+    return emulator_list
+
+def predict_parameters(cosmology, emu_list, R=None):
+    params = np.array([emu.predict_one_point(cosmology)[0] for emu in emu_list])
+    if R is None: return params
+    else: return np.dot(R, params)
+

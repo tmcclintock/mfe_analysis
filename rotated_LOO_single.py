@@ -12,21 +12,6 @@ import sys, os, emulator
 import cosmocalc as cc
 from setup_routines import *
 
-def train(training_cosmos, training_data, training_errs):
-    N_cosmos = len(training_cosmos)
-    N_emulators = training_data.shape[1]
-    emulator_list = []
-    for i in range(N_emulators):
-        y = training_data[:, i]
-        yerr = training_errs[:, i]
-        emu = emulator.Emulator(name="emu%d"%i, xdata=training_cosmos, ydata=y, yerr=yerr)
-        emu.train()
-        emulator_list.append(emu)
-    return emulator_list
-
-def predict_parameters(cosmology, emu_list):
-    params = np.array([emu.predict_one_point(cosmology)[0] for emu in emu_list])
-    return np.dot(R, params)
 Xisnu = True
 if Xisnu: xlabel = r"$\nu$"
 else: xlabel  = r"$\log_{10}M\ [{\rm M_\odot}/h]$"
@@ -64,7 +49,7 @@ for i in range(0,1):
 
     #Train the emulators
     emu_list = train(training_cosmos, training_data, training_errs)
-    emu_model = predict_parameters(test_cosmo, emu_list)
+    emu_model = predict_parameters(test_cosmo, emu_list, R)
 
     for j in range(0,N_z):
         lM_bins, lM, N, err, cov = get_sim_data(i,j)
