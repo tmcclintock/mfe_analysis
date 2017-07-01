@@ -39,8 +39,8 @@ for i in range(0,1):
     training_errs   = np.delete(err_models, i, 0)
 
     #Train the emulators
-    emu_list = train(training_cosmos, training_data, training_errs)
-    emu_model = predict_parameters(test_cosmo, emu_list)
+    emu_list = train(training_cosmos, training_data, training_errs, use_george=False)
+    emu_model = predict_parameters(test_cosmo, emu_list, training_data, use_george=False)
 
     for j in range(N_z):
         lM_bins, lM, N, err, cov = get_sim_data(i,j)

@@ -64,7 +64,6 @@ for i in range(0,1):
         N_bf = volume * TMF_model.n_in_bins(lM_bins)
         bG = get_bG(cosmo_dict, scale_factors[j], 10**lM)
 
-
         dN_N = (N-N_bf)/N_bf
         dN_NbG = dN_N/bG
         edN_NbG = err/N_bf/bG
