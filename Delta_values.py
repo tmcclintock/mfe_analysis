@@ -11,7 +11,7 @@ import sys, os, emulator
 import cosmocalc as cc
 from setup_routines import *
 
-usegeorge = False
+usegeorge = True
 
 xlabel = r"$\nu$"
 y0label = r"$\Delta=\frac{N}{N_{emu}bG}-1-\frac{1}{bG}$"
@@ -46,7 +46,7 @@ for i in range(0,1):
     training_errs   = np.delete(err_models, i, 0)
 
     #Train the emulators
-    emu_list = train(training_cosmos, training_data, training_errs)
+    emu_list = train(training_cosmos, training_data, training_errs, use_george=usegeorge)
     emu_model = predict_parameters(test_cosmo, emu_list, training_data, R=R, use_george=usegeorge)
 
     for j in range(N_z):

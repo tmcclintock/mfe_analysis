@@ -12,7 +12,7 @@ import sys, os, emulator
 import cosmocalc as cc
 from setup_routines import *
 
-usegeorge = False
+usegeorge = True
 Xisnu = False
 if Xisnu: xlabel = r"$\nu$"
 else: xlabel  = r"$\log_{10}M\ [{\rm M_\odot}/h]$"
