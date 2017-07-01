@@ -11,22 +11,7 @@ import sys, os, emulator
 import cosmocalc as cc
 from setup_routines import *
 
-def train(training_cosmos, training_data, training_errs):
-    N_cosmos = len(training_cosmos)
-    N_emulators = training_data.shape[1]
-    emulator_list = []
-    for i in range(N_emulators):
-        y = training_data[:, i]
-        yerr = training_errs[:, i]
-        emu = emulator.Emulator(name="emu%d"%i, xdata=training_cosmos, 
-                                ydata=y, yerr=yerr)
-        emu.train()
-        emulator_list.append(emu)
-    return emulator_list
-
-def predict_parameters(cosmology, emu_list):
-    params = np.array([emu.predict_one_point(cosmology)[0] for emu in emu_list])
-    return np.dot(R, params)
+usegeorge = False
 
 xlabel = r"$\nu$"
 y0label = r"$\Delta=\frac{N}{N_{emu}bG}-1-\frac{1}{bG}$"
@@ -49,7 +34,7 @@ def get_bG(a, Masses):
 def get_nu(a, Masses):
     return 1.686/np.array([cc.sigmaMtophat(Mi, a) for Mi in Masses])
 
-for i in range(0,5):
+for i in range(0,1):
     fig, axarr = plt.subplots(2, sharex=True)
     cosmo_dict = get_cosmo_dict(i)
 
@@ -62,7 +47,7 @@ for i in range(0,5):
 
     #Train the emulators
     emu_list = train(training_cosmos, training_data, training_errs)
-    emu_model = predict_parameters(test_cosmo, emu_list)
+    emu_model = predict_parameters(test_cosmo, emu_list, training_data, R=R, use_george=usegeorge)
 
     for j in range(N_z):
         lM_bins, lM, N, err, cov = get_sim_data(i,j)
@@ -75,12 +60,13 @@ for i in range(0,5):
         bG = get_bG(scale_factors[j], 10**lM)
         pd = (N-N_bf)/N_bf
         pde  = err/N_bf
-        Delta = pd/bG - 1 
+        Delta = pd/bG
         Deltae = pde/bG
         nu = get_nu(scale_factors[j], 10**lM)        
         
         axarr[0].errorbar(nu, Delta, Deltae, c=colors[j], marker='.',ls='')
         axarr[1].errorbar(nu, pd, pde, c=colors[j], marker='.',ls='')
+    axarr[0].axhline(0, c='k', ls='-', zorder=-1)
     axarr[1].axhline(0, c='k', ls='-', zorder=-1)
 
     axarr[1].set_xlabel(xlabel)

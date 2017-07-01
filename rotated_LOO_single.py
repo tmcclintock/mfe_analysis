@@ -12,6 +12,7 @@ import sys, os, emulator
 import cosmocalc as cc
 from setup_routines import *
 
+usegeorge = False
 Xisnu = False
 if Xisnu: xlabel = r"$\nu$"
 else: xlabel  = r"$\log_{10}M\ [{\rm M_\odot}/h]$"
@@ -19,7 +20,7 @@ else: xlabel  = r"$\log_{10}M\ [{\rm M_\odot}/h]$"
 y0label = r"$N/[{\rm Gpc}^3\  \log_{10}{\rm M_\odot}/h]$"
 y0label = r"$N/[{\rm Gpc}^3\  \log{\rm M}]$"
 y1label = r"$\%\ {\rm Diff}$"
-#y1label = r"$\frac{N-N_{emu}}{N_{emu}bG}$"
+y1label = r"$\frac{N-N_{emu}}{N_{emu}bG}$"
 
 scale_factors, redshifts = get_sf_and_redshifts()
 volume = get_volume()
@@ -48,8 +49,8 @@ for i in range(0,1):
     training_errs   = np.delete(err_models, i, 0)
 
     #Train the emulators
-    emu_list = train(training_cosmos, training_data, training_errs, use_george=True)
-    emu_model = predict_parameters(test_cosmo, emu_list, training_data, R=R, use_george=True)
+    emu_list = train(training_cosmos, training_data, training_errs, use_george=usegeorge)
+    emu_model = predict_parameters(test_cosmo, emu_list, training_data, R=R, use_george=usegeorge)
 
     for j in range(0,N_z):
         lM_bins, lM, N, err, cov = get_sim_data(i,j)
@@ -71,8 +72,8 @@ for i in range(0,1):
         pde = 100.*err/N_bf
         axarr[0].errorbar(domain, N, err, marker='.', ls='', c=colors[j], alpha=1.0, label=r"$z=%.1f$"%redshifts[j])
         axarr[0].plot(domain, N_bf, ls='--', c=colors[j], alpha=1.0)
-        axarr[1].errorbar(domain, pd, pde, marker='.', ls='', c=colors[j], alpha=1.0)
-        #axarr[1].errorbar(domain, dN_NbG, edN_NbG, marker='.', ls='', c=colors[j], alpha=1.0)
+        #axarr[1].errorbar(domain, pd, pde, marker='.', ls='', c=colors[j], alpha=1.0)
+        axarr[1].errorbar(domain, dN_NbG, edN_NbG, marker='.', ls='', c=colors[j], alpha=1.0)
     axarr[1].axhline(0, c='k', ls='-', zorder=-1)
 
     axarr[1].set_xlabel(xlabel)
@@ -80,7 +81,7 @@ for i in range(0,1):
     axarr[1].set_ylabel(y1label)
     axarr[0].set_yscale('log')
     axarr[0].set_ylim(1, axarr[0].get_ylim()[1])
-    axarr[1].set_ylim(-18, 18)
+    #axarr[1].set_ylim(-18, 18)
     #axarr[1].set_xlim(12.9, 15)
     leg = axarr[0].legend(loc=0, fontsize=6, numpoints=1, frameon=False)
     leg.get_frame().set_alpha(0.5)

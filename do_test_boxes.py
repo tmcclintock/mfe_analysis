@@ -10,6 +10,8 @@ import sys, os, emulator
 import cosmocalc as cc
 from setup_routines import *
 
+usegeorge = True
+
 xlabel  = r"$\log_{10}M\ [{\rm M_\odot}/h]$"
 y0label = r"$N/[{\rm Gpc}^3\  \log_{10}{\rm M_\odot}/h]$"
 y0label = r"$N/[{\rm Gpc}^3\  \log{\rm M}]$"
@@ -27,14 +29,14 @@ name = 'dfg'
 mean_models, err_models, R = get_rotated_fits(name)
 
 #First train the emulators
-emu_list = train(building_cosmos, mean_models, err_models)
+emu_list = train(building_cosmos, mean_models, err_models, use_george=usegeorge)
 
 #Loop over test boxes and do everything
 for i in range(0,7):
     fig, axarr = plt.subplots(2, sharex=True)
     test_cosmo = testbox_cosmos[i]
     cosmo_dict = get_testbox_cosmo_dict(i)
-    emu_model = predict_parameters(test_cosmo, emu_list, R)
+    emu_model = predict_parameters(test_cosmo, emu_list, mean_models, R=R, use_george=usegeorge)
 
     for j in range(0, N_z):
         lM_bins, lM, N, err, cov = get_testbox_data(i,j)
@@ -66,6 +68,6 @@ for i in range(0,7):
     leg = axarr[0].legend(loc=0, fontsize=6, numpoints=1, frameon=False)
     leg.get_frame().set_alpha(0.5)
     plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.0)
-    plt.gcf().savefig("testbox%03d.png"%i)
+    plt.gcf().savefig("with_george_testbox%03d.png"%i)
     #plt.show()
     plt.clf()
