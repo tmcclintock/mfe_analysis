@@ -34,56 +34,50 @@ def get_bG(a, Masses):
 def get_nu(a, Masses):
     return 1.686/np.array([cc.sigmaMtophat(Mi, a) for Mi in Masses])
 
+def make_delta0():
+    for i in range(0,N_cosmos):
+        delta0 = []
+        edelta0 = []
+        nus = []
+        cosmo_dict = get_cosmo_dict(i)
+        
+        test_cosmo = building_cosmos[i]
+        test_data  = mean_models[i]
+        test_err   = err_models[i]
+        training_cosmos = np.delete(building_cosmos, i, 0)
+        training_data   = np.delete(mean_models, i, 0)
+        training_errs   = np.delete(err_models, i, 0)
+        
+        #Train the emulators
+        emu_list = train(training_cosmos, training_data, training_errs, use_george=usegeorge)
+        emu_model = predict_parameters(test_cosmo, emu_list, training_data, R=R, use_george=usegeorge)
 
-for i in range(0,N_cosmos):
-    delta0 = []
-    edelta0 = []
-    nus = []
-    cosmo_dict = get_cosmo_dict(i)
+        for j in range(N_z):
+            lM_bins, lM, N, err, cov = get_sim_data(i,j)
 
-    test_cosmo = building_cosmos[i]
-    test_data  = mean_models[i]
-    test_err   = err_models[i]
-    training_cosmos = np.delete(building_cosmos, i, 0)
-    training_data   = np.delete(mean_models, i, 0)
-    training_errs   = np.delete(err_models, i, 0)
+            #Get emulated curves
+            TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
+            d,e,f,g,B = get_params(emu_model, scale_factors[j])
+            TMF_model.set_parameters(d,e,f,g,B)
+            N_bf = volume * TMF_model.n_in_bins(lM_bins)
+            bG = get_bG(scale_factors[j], 10**lM)
+            pd = (N-N_bf)/N_bf
+            pde  = err/N_bf
+            Delta = pd/bG
+            Deltae = pde/bG
+            nu = get_nu(scale_factors[j], 10**lM)
+            delta0  = np.concatenate((delta0, Delta))
+            edelta0 = np.concatenate((edelta0, Deltae))
+            nus     = np.concatenate((nus, nu))
+        out = np.array([nus,delta0,edelta0]).T
+        np.savetxt("txt_files/delta_%03d.txt"%i, out)
+        print "Saved deltas for %03d"%i
+    return
 
-    #Train the emulators
-    emu_list = train(training_cosmos, training_data, training_errs, use_george=usegeorge)
-    emu_model = predict_parameters(test_cosmo, emu_list, training_data, R=R, use_george=usegeorge)
+def fit_delta0():
+    for i in range(0,N_cosmos):
+        nu, d, e = np.loadtxt("txt_files/delta_%03d.txt"%i, unpack=True)
+        
 
-    for j in range(N_z):
-        lM_bins, lM, N, err, cov = get_sim_data(i,j)
-
-        #Get emulated curves
-        TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
-        d,e,f,g,B = get_params(emu_model, scale_factors[j])
-        TMF_model.set_parameters(d,e,f,g,B)
-        N_bf = volume * TMF_model.n_in_bins(lM_bins)
-        bG = get_bG(scale_factors[j], 10**lM)
-        pd = (N-N_bf)/N_bf
-        pde  = err/N_bf
-        Delta = pd/bG
-        Deltae = pde/bG
-        nu = get_nu(scale_factors[j], 10**lM)
-        delta0  = np.concatenate((delta0, Delta))
-        edelta0 = np.concatenate((edelta0, Deltae))
-        nus     = np.concatenate((nus, nu))
-    """
-        axarr[0].errorbar(nu, Delta, Deltae, c=colors[j], marker='.',ls='')
-        axarr[1].errorbar(nu, pd, pde, c=colors[j], marker='.',ls='')
-    axarr[0].axhline(0, c='k', ls='-', zorder=-1)
-    axarr[1].axhline(0, c='k', ls='-', zorder=-1)
-
-    axarr[1].set_xlabel(xlabel)
-    axarr[0].set_ylabel(y0label)
-    axarr[1].set_ylabel(y1label)
-    axarr[0].set_ylim(-0.05, 0.05)
-    axarr[1].set_ylim(-.05, .05)
-    plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.3)
-    #plt.show()
-    plt.clf()
-    """
-    out = np.array([nus,delta0,edelta0]).T
-    np.savetxt("txt_files/delta_%03d.txt"%i, out)
-    print "Saved deltas for %03d"%i
+if __name__ == "__main__":
+    fit_delta0()
