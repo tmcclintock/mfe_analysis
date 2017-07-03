@@ -15,7 +15,7 @@ usegeorge = True
 
 xlabel = r"$\nu$"
 y0label = r"$\Delta=\frac{N}{N_{emu}bG}-1-\frac{1}{bG}$"
-y0label = ''
+y0label = r"$\Delta N/N_{emu}bG$"
 #y1label = r"$\%\ {\rm Diff}=\frac{N}{N_{emu}}$"
 y1label = r"$\Delta N/N_{emu}$"
 
@@ -34,8 +34,11 @@ def get_bG(a, Masses):
 def get_nu(a, Masses):
     return 1.686/np.array([cc.sigmaMtophat(Mi, a) for Mi in Masses])
 
-for i in range(0,1):
-    fig, axarr = plt.subplots(2, sharex=True)
+
+for i in range(0,N_cosmos):
+    delta0 = []
+    edelta0 = []
+    nus = []
     cosmo_dict = get_cosmo_dict(i)
 
     test_cosmo = building_cosmos[i]
@@ -62,8 +65,11 @@ for i in range(0,1):
         pde  = err/N_bf
         Delta = pd/bG
         Deltae = pde/bG
-        nu = get_nu(scale_factors[j], 10**lM)        
-        
+        nu = get_nu(scale_factors[j], 10**lM)
+        delta0  = np.concatenate((delta0, Delta))
+        edelta0 = np.concatenate((edelta0, Deltae))
+        nus     = np.concatenate((nus, nu))
+    """
         axarr[0].errorbar(nu, Delta, Deltae, c=colors[j], marker='.',ls='')
         axarr[1].errorbar(nu, pd, pde, c=colors[j], marker='.',ls='')
     axarr[0].axhline(0, c='k', ls='-', zorder=-1)
@@ -72,6 +78,12 @@ for i in range(0,1):
     axarr[1].set_xlabel(xlabel)
     axarr[0].set_ylabel(y0label)
     axarr[1].set_ylabel(y1label)
-    axarr[1].set_ylim(-.18, .18)
+    axarr[0].set_ylim(-0.05, 0.05)
+    axarr[1].set_ylim(-.05, .05)
     plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.3)
-    plt.show()
+    #plt.show()
+    plt.clf()
+    """
+    out = np.array([nus,delta0,edelta0]).T
+    np.savetxt("txt_files/delta_%03d.txt"%i, out)
+    print "Saved deltas for %03d"%i
