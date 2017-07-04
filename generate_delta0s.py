@@ -71,8 +71,8 @@ def make_delta0():
             edelta0 = np.concatenate((edelta0, Deltae))
             nus     = np.concatenate((nus, nu))
             for ii in range(len(cov)):
-                for jj in range(len(cov[i])):
-                    outcov[i,j] = cov[i,j]/(N_bf[ii]*bG[ii] * N_bf[jj]*bG[jj])
+                for jj in range(len(cov[ii])):
+                    outcov[ii,jj] = cov[ii,jj]/(N_bf[ii]*bG[ii] * N_bf[jj]*bG[jj])
             np.savetxt("txt_files/bgcov_%03d_z%d.txt"%(i,j), outcov)
         out = np.array([nus,delta0,edelta0]).T
         np.savetxt("txt_files/delta_%03d.txt"%i, out)
@@ -80,10 +80,32 @@ def make_delta0():
     return
 
 def fit_delta0():
+    d0s = np.zeros(N_cosmos)
+    ed0s= np.zeros(N_cosmos)
     for i in range(0,N_cosmos):
-        nu, d, e = np.loadtxt("txt_files/delta_%03d.txt"%i, unpack=True)
-        
+        data = np.loadtxt("txt_files/delta_%03d.txt"%i)
+        start = 0
+        d0j = np.zeros(N_z)
+        vd0j = np.zeros(N_z)
+        for j in range(0,N_z):
+            cov = np.loadtxt("txt_files/bgcov_%03d_z%d.txt"%(i,j))
+            icov = np.linalg.inv(cov)
+            nu,d,_ = data[start:start+len(cov)].T
+            A = np.ones_like(nu)
+            var = np.dot(A, np.dot(icov, A))**-1
+            rhs = np.dot(A, np.dot(icov, d))
+            d0j[j] = np.dot(var, rhs)
+            vd0j[j] = var
+            start += len(cov)
+        d0s[i] = np.average(d0j, weights=vd0j)
+        ed0s[i] = np.sqrt(np.mean(vd0j))
+        print i, d0s[i], ed0s[i]
+    out = np.array([d0s, ed0s]).T
+    np.savetxt("txt_files/delta0.txt", out)
+    print "delta0s saved"
+    plt.hist(d0s, 20)
+    plt.show()
 
 if __name__ == "__main__":
-    make_delta0()
-    #fit_delta0()
+    #make_delta0()
+    fit_delta0()
