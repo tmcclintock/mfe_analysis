@@ -54,6 +54,7 @@ def make_delta0():
 
         for j in range(N_z):
             lM_bins, lM, N, err, cov = get_sim_data(i,j)
+            outcov = np.zeros_like(cov)
 
             #Get emulated curves
             TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
@@ -69,6 +70,10 @@ def make_delta0():
             delta0  = np.concatenate((delta0, Delta))
             edelta0 = np.concatenate((edelta0, Deltae))
             nus     = np.concatenate((nus, nu))
+            for ii in range(len(cov)):
+                for jj in range(len(cov[i])):
+                    outcov[i,j] = cov[i,j]/(N_bf[ii]*bG[ii] * N_bf[jj]*bG[jj])
+            np.savetxt("txt_files/bgcov_%03d_z%d.txt"%(i,j), outcov)
         out = np.array([nus,delta0,edelta0]).T
         np.savetxt("txt_files/delta_%03d.txt"%i, out)
         print "Saved deltas for %03d"%i
@@ -80,4 +85,5 @@ def fit_delta0():
         
 
 if __name__ == "__main__":
-    fit_delta0()
+    make_delta0()
+    #fit_delta0()
