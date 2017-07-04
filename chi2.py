@@ -53,5 +53,20 @@ def calc_chi2():
     np.savetxt("txt_files/dofs.txt",dofs)
     return
 
+def plot_chi2():
+    from scipy.stats import chi2
+    chi2s = np.loadtxt("txt_files/chi2.txt")
+    dofs = np.loadtxt("txt_files/dofs.txt")
+    df = np.mean(dofs)
+    fchi2s = chi2s.flatten()
+    mean, var = chi2.stats(df, moments="mv")
+    x = np.linspace(chi2.ppf(0.01, df), chi2.ppf(0.99, df), 100)
+    plt.plot(x, chi2.pdf(x, df))
+    plt.hist(fchi2s, 40, normed=True)
+    plt.xlabel(r"$\chi_2$", fontsize=24)
+    plt.subplots_adjust(bottom=0.15)
+    plt.show()
+
 if __name__ == "__main__":
-    calc_chi2()
+    #calc_chi2()
+    plot_chi2()
