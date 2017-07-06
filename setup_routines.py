@@ -176,3 +176,4 @@ def predict_parameters(cosmology, emu_list, training_data, use_george=False, R=N
         params = np.array([emu.predict_one_point(cosmology)[0] for emu in emu_list])
     if R is None: return params #Not using rotated version
     return np.dot(R, params)
+

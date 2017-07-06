@@ -1,5 +1,7 @@
 """
-Here I will emulate the test boxes.
+Make a regular old testbox plot, but have many realizations.
+
+NOTE: THIS DOESN'T WORK BECAUSE THE CONDITIONAL HAS SUPER LARGE ERRORS.
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,6 +29,7 @@ building_cosmos = get_building_cosmos()
 testbox_cosmos = get_testbox_cosmos()
 name = 'dfg'
 mean_models, err_models, R = get_rotated_fits(name)
+N_realizations = 1
 
 #First train the emulators
 emu_list = train(building_cosmos, mean_models, err_models, use_george=usegeorge)
@@ -36,23 +39,30 @@ for i in range(0,1):
     fig, axarr = plt.subplots(2, sharex=True)
     test_cosmo = testbox_cosmos[i]
     cosmo_dict = get_testbox_cosmo_dict(i)
-    emu_model = predict_parameters(test_cosmo, emu_list, mean_models, R=R, use_george=usegeorge)
 
+    #First plot the data
     for j in range(0, N_z):
         lM_bins, lM, N, err, cov = get_testbox_data(i,j)
         axarr[0].errorbar(lM, N, err, marker='.', ls='', c=colors[j], alpha=1.0, label=r"$z=%.1f$"%redshifts[j])
 
-        #Get emulated curves
-        TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
-        d,e,f,g,B = get_params(emu_model, scale_factors[j])
-        TMF_model.set_parameters(d,e,f,g,B)
-        N_bf = volume * TMF_model.n_in_bins(lM_bins)
+    for real in range(N_realizations):
+        emu_model = get_realization(test_cosmo, emu_list, mean_models, R=R, use_george=usegeorge)
+        #emu_model = predict_parameters(test_cosmo, emu_list, mean_models, R=R, use_george=usegeorge)
+        print emu_model
+        for j in range(0, N_z):
+            lM_bins, lM, N, err, cov = get_testbox_data(i,j)
+            #Get emulated curves
+            TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
+            d,e,f,g,B = get_params(emu_model, scale_factors[j])
+            TMF_model.set_parameters(d,e,f,g,B)
 
-        axarr[0].plot(lM, N_bf, ls='--', c=colors[j], alpha=1.0)
-        dN_N = (N-N_bf)/N_bf
-        pd  = 100.*dN_N
-        pde = 100.*err/N_bf
-        axarr[1].errorbar(lM+0.02*j, pd, pde, marker='.', ls='', c=colors[j], alpha=1.0)
+            N_bf = volume * TMF_model.n_in_bins(lM_bins)
+            axarr[0].plot(lM, N_bf, ls='--', c=colors[j], alpha=0.3)
+            dN_N = (N-N_bf)/N_bf
+            pd  = 100.*dN_N
+            pde = 100.*err/N_bf
+            axarr[1].errorbar(lM+0.02*j, pd, pde, marker='.', ls='', c=colors[j], alpha=1.0)
+            #axarr[1].scatter(lM+0.02*j, pd, marker='.', c=colors[j], alpha=0.3)
 
     axarr[1].axhline(0, c='k', ls='-', zorder=-1)
     axarr[1].axhline(1, c='k', ls='--', lw=0.5, zorder=-1)
