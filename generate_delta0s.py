@@ -106,6 +106,62 @@ def fit_delta0():
     plt.hist(d0s, 20)
     plt.show()
 
+def get_bigdelta():
+    delta0s = np.loadtxt("txt_files/delta0.txt")[:,0]
+    Deltas = []
+    eDeltas = []
+    nus = []
+    lMs = []
+    for i in range(0,N_cosmos):
+        delta0 = delta0s[i]
+        cosmo_dict = get_cosmo_dict(i)
+        test_cosmo = building_cosmos[i]
+        test_data  = mean_models[i]
+        test_err   = err_models[i]
+        training_cosmos = np.delete(building_cosmos, i, 0)
+        training_data   = np.delete(mean_models, i, 0)
+        training_errs   = np.delete(err_models, i, 0)
+        #Train the emulators
+        emu_list = train(training_cosmos, training_data, training_errs, use_george=usegeorge)
+        emu_model = predict_parameters(test_cosmo, emu_list, training_data, R=R, use_george=usegeorge)
+        for j in range(N_z):
+            lM_bins, lM, N, err, cov = get_sim_data(i,j)
+            outcov = np.zeros_like(cov)
+
+            #Get emulated curves
+            TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
+            d,e,f,g,B = get_params(emu_model, scale_factors[j])
+            TMF_model.set_parameters(d,e,f,g,B)
+            N_bf = volume * TMF_model.n_in_bins(lM_bins)
+            bG = get_bG(scale_factors[j], 10**lM)
+            Delta = (N-N_bf)/N_bf - bG*delta0
+            eDelta = err/N_bf
+            nu = get_nu(scale_factors[j], 10**lM)
+            Deltas = np.concatenate((Deltas, Delta))
+            eDeltas = np.concatenate((eDeltas, eDelta))
+            nus = np.concatenate((nus, nu))
+            lMs = np.concatenate((lMs, lM))
+        print "Got bigDeltas for box%03d"%i
+    out = np.array([lMs, nus, Deltas, eDeltas]).T
+    np.savetxt("txt_files/bigDeltas.txt", out)
+    return
+
+def plot_bigDelta():
+    lM, nu, Delta, eDelta = np.genfromtxt("txt_files/bigDeltas.txt", unpack=True)
+    #TRY TO MAKE A GP HERE
+    
+
+
+    #plt.errorbar(nu, Delta, eDelta, alpha=0.1, ls='', marker='.')
+    plt.scatter(nu, Delta,  alpha=0.1, marker='.')
+    plt.ylim(-0.1, 0.1)
+    plt.xlabel(r"$\nu$")
+    plt.ylabel(r"$\Delta=\frac{\Delta N}{N_{emu}}-bG\delta_0$")
+    plt.subplots_adjust(left=0.22, bottom=0.15)
+    plt.show()
+
 if __name__ == "__main__":
     #make_delta0()
-    fit_delta0()
+    #fit_delta0()
+    #get_bigdelta()
+    plot_bigDelta()
