@@ -113,7 +113,7 @@ def get_bigdelta():
     nus = []
     lMs = []
     for i in range(0,N_cosmos):
-        delta0 = delta0s[i]
+        delta0 = delta0s[i]*0 #REMOVING delta0 HERE BECAUSE IT DOESN'T EXIST
         cosmo_dict = get_cosmo_dict(i)
         test_cosmo = building_cosmos[i]
         test_data  = mean_models[i]
@@ -186,5 +186,5 @@ def plot_bigDelta():
 if __name__ == "__main__":
     #make_delta0()
     #fit_delta0()
-    #get_bigdelta()
+    get_bigdelta()
     plot_bigDelta()
