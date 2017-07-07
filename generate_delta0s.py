@@ -149,29 +149,30 @@ def get_bigdelta():
 def plot_bigDelta():
     np.random.seed(12345666)
     data = np.genfromtxt("txt_files/bigDeltas.txt")
-    L = len(data)/4
+    L = len(data)/2
     newdata = np.random.permutation(data)[:L]
     lM, nu, Delta, eDelta = newdata.T
     x = nu
     aDelta = np.fabs(Delta)
-    print np.mean(Delta), max(nu), min(nu)
+    print np.mean(Delta), np.mean(eDelta), max(nu), min(nu)
     import george
     kernel = george.kernels.ExpSquaredKernel(1)
     gp = george.GP(kernel)
     print "computing with george"
     gp.compute(x, eDelta)
     print "One compute done"
-    gp.optimize(x, aDelta, eDelta)
+    gp.optimize(x, Delta, eDelta)
     print "george optimized"
     print gp
     t = np.linspace(min(x)-1, max(x)+1, 100)
-    mu, cov = gp.predict(aDelta, t)
-    #err = np.sqrt(np.diag(cov))
+    mu, cov = gp.predict(Delta, t)
+    err = np.sqrt(np.diag(cov))
 
     #plt.errorbar(nu, Delta, eDelta, alpha=0.1, ls='', marker='.')
     plt.scatter(x, Delta,  alpha=0.1, marker='.')
-    #plt.plot(t, mu, c='r')
-    plt.fill_between(t, mu, -mu, color='r', alpha=0.3)
+    plt.plot(t, mu, c='r')
+    plt.fill_between(t, mu-err, mu+err, color='r', alpha=0.3)
+    #plt.fill_between(t, mu, -mu, color='r', alpha=0.3)
     plt.axhline(-0.01, c='k', ls='--')
     plt.axhline(0.01, c='k', ls='--')
     plt.axhline(0.0, c='k', ls='-')
@@ -179,12 +180,12 @@ def plot_bigDelta():
     plt.axvline(min(x), c='g', ls='-')
     plt.ylim(-0.1, 0.1)
     plt.xlabel(r"$\nu$")
-    plt.ylabel(r"$\Delta=\frac{\Delta N}{N_{emu}}-bG\delta_0$")
+    plt.ylabel(r"$\Delta=\frac{\Delta N}{N_{emu}}$")
     plt.subplots_adjust(left=0.22, bottom=0.15)
     plt.show()
 
 if __name__ == "__main__":
     #make_delta0()
     #fit_delta0()
-    get_bigdelta()
+    #get_bigdelta()
     plot_bigDelta()
