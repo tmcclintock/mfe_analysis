@@ -152,30 +152,31 @@ def plot_bigDelta():
     L = len(data)/4
     newdata = np.random.permutation(data)[:L]
     lM, nu, Delta, eDelta = newdata.T
+    x = nu
     aDelta = np.fabs(Delta)
     print np.mean(Delta), max(nu), min(nu)
     import george
     kernel = george.kernels.ExpSquaredKernel(1)
     gp = george.GP(kernel)
     print "computing with george"
-    gp.compute(nu, eDelta)
+    gp.compute(x, eDelta)
     print "One compute done"
-    gp.optimize(nu, aDelta, eDelta)
+    gp.optimize(x, aDelta, eDelta)
     print "george optimized"
     print gp
-    t = np.linspace(min(nu)-1, max(nu)+1, 100)
+    t = np.linspace(min(x)-1, max(x)+1, 100)
     mu, cov = gp.predict(aDelta, t)
     #err = np.sqrt(np.diag(cov))
 
     #plt.errorbar(nu, Delta, eDelta, alpha=0.1, ls='', marker='.')
-    plt.scatter(nu, Delta,  alpha=0.1, marker='.')
+    plt.scatter(x, Delta,  alpha=0.1, marker='.')
     #plt.plot(t, mu, c='r')
     plt.fill_between(t, mu, -mu, color='r', alpha=0.3)
     plt.axhline(-0.01, c='k', ls='--')
     plt.axhline(0.01, c='k', ls='--')
     plt.axhline(0.0, c='k', ls='-')
-    plt.axvline(max(nu), c='g', ls='-')
-    plt.axvline(min(nu), c='g', ls='-')
+    plt.axvline(max(x), c='g', ls='-')
+    plt.axvline(min(x), c='g', ls='-')
     plt.ylim(-0.1, 0.1)
     plt.xlabel(r"$\nu$")
     plt.ylabel(r"$\Delta=\frac{\Delta N}{N_{emu}}-bG\delta_0$")
