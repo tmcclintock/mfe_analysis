@@ -149,19 +149,20 @@ def get_bigdelta():
 def plot_bigDelta():
     np.random.seed(12345666)
     data = np.genfromtxt("txt_files/bigDeltas.txt")
-    L = len(data)/2
+    L = len(data)/5
     newdata = np.random.permutation(data)[:L]
     lM, nu, Delta, eDelta = newdata.T
     x = nu
     aDelta = np.fabs(Delta)
     print np.mean(Delta), np.mean(eDelta), max(nu), min(nu)
     import george
-    kernel = george.kernels.ExpSquaredKernel(1)
-    gp = george.GP(kernel)
+    #kernel = george.kernels.ExpKernel(10)
+    kernel = george.kernels.ExpSquaredKernel(0.01)
+    gp = george.GP(kernel, mean=np.mean(Delta))
     print "computing with george"
-    gp.compute(x, eDelta)
+    gp.compute(x=x, yerr=eDelta)
     print "One compute done"
-    gp.optimize(x, Delta, eDelta)
+    #gp.optimize(x=x, y=Delta, yerr=eDelta)
     print "george optimized"
     print gp
     t = np.linspace(min(x)-1, max(x)+1, 100)
