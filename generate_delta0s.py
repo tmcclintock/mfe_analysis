@@ -149,30 +149,38 @@ def get_bigdelta():
 def plot_bigDelta():
     np.random.seed(12345666)
     data = np.genfromtxt("txt_files/bigDeltas.txt")
-    L = len(data)/5
+    L = len(data)/3
     newdata = np.random.permutation(data)[:L]
+    nu = newdata[:,1]
+    inds = np.where(nu < 5)[0]
+    #newdata = newdata[inds]
     lM, nu, Delta, eDelta = newdata.T
     x = nu
     aDelta = np.fabs(Delta)
     print np.mean(Delta), np.mean(eDelta), max(nu), min(nu)
     import george
-    #kernel = george.kernels.ExpKernel(10)
-    kernel = george.kernels.ExpSquaredKernel(0.01)
-    gp = george.GP(kernel, mean=np.mean(Delta))
+    k,l = 1000, 10
+    #kernel = k*george.kernels.ExpKernel(l)
+    kernel = k*george.kernels.ExpSquaredKernel(l)
+    gp = george.GP(kernel)#, mean=np.mean(Delta))
     print "computing with george"
     gp.compute(x=x, yerr=eDelta)
     print "One compute done"
-    #gp.optimize(x=x, y=Delta, yerr=eDelta)
+    gp.optimize(x=x, y=Delta, yerr=eDelta)
     print "george optimized"
-    print gp
+    print gp.kernel
     t = np.linspace(min(x)-1, max(x)+1, 100)
     mu, cov = gp.predict(Delta, t)
     err = np.sqrt(np.diag(cov))
 
-    #plt.errorbar(nu, Delta, eDelta, alpha=0.1, ls='', marker='.')
-    plt.scatter(x, Delta,  alpha=0.1, marker='.')
+    plt.errorbar(x, Delta, eDelta, alpha=0.2, ls='', marker='.', zorder=-1)
+    #plt.scatter(x, Delta,  alpha=0.2, marker='.')
     plt.plot(t, mu, c='r')
     plt.fill_between(t, mu-err, mu+err, color='r', alpha=0.3)
+    for i in range(10):
+        cond = gp.sample_conditional(Delta, t)
+        plt.plot(t, cond, ls='-', c='k', alpha=0.5)
+
     #plt.fill_between(t, mu, -mu, color='r', alpha=0.3)
     plt.axhline(-0.01, c='k', ls='--')
     plt.axhline(0.01, c='k', ls='--')
