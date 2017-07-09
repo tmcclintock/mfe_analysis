@@ -8,14 +8,14 @@ import sys, os, emulator
 import george
 
 #Paths to the building boxes
-base = "../Mass-Function-Emulator/test_data/"
+base = "../../Desktop/all_MF_data/building_MF_data/"#"../Mass-Function-Emulator/test_data/"
 datapath = base+"N_data/Box%03d_full/Box%03d_full_Z%d.txt"
 covpath  = base+"covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 def get_basepaths():
     return [base, datapath, covpath]
 
 #Paths to the test boxes
-base2 = "../../all_MF_data/Test_NM_data/averaged_mf_data/"
+base2 = "../../Desktop/all_MF_data/Test_NM_data/averaged_mf_data/"#"../../all_MF_data/Test_NM_data/averaged_mf_data/"
 datapath2 = base2+"full_mf_data/TestBox%03d/TestBox%03d_mean_Z%d.txt"
 covpath2  = base2+"covariances/TestBox%03d_cov/TestBox%03d_cov_Z%d.txt"
 def get_testbox_paths():
@@ -156,7 +156,7 @@ def train(training_cosmos, training_data, training_errs, use_george=False):
         yerr = training_errs[:, i]
         if use_george:
             lguess = (np.max(training_cosmos,0) - np.min(training_cosmos,0))/N_cosmos
-            kernel = george.kernels.ExpSquaredKernel(metric=lguess, ndim=len(training_cosmos[0]))
+            kernel = 1.*george.kernels.ExpSquaredKernel(metric=lguess, ndim=len(training_cosmos[0]))
             gp = george.GP(kernel)
             gp.compute(training_cosmos, yerr)
             gp.optimize(training_cosmos, y, yerr, verbose=False)
