@@ -50,20 +50,20 @@ for i in range(0,1):
 
         axarr[0].plot(lM, N_bf, ls='--', c=colors[j], alpha=1.0)
         dN_N = (N-N_bf)/N_bf
-        pd  = 100.*dN_N
-        pde = 100.*err/N_bf
+        pd  = dN_N
+        pde = err/N_bf
         axarr[1].errorbar(lM+0.02*j, pd, pde, marker='.', ls='', c=colors[j], alpha=1.0)
 
     axarr[1].axhline(0, c='k', ls='-', zorder=-1)
-    axarr[1].axhline(1, c='k', ls='--', lw=0.5, zorder=-1)
-    axarr[1].axhline(-1, c='k', ls='--', lw=0.5, zorder=-1)
+    axarr[1].axhline(0.01, c='k', ls='--', lw=0.5, zorder=-1)
+    axarr[1].axhline(-0.01, c='k', ls='--', lw=0.5, zorder=-1)
 
     axarr[1].set_xlabel(xlabel)
     axarr[0].set_ylabel(y0label)
     axarr[1].set_ylabel(y1label)
     axarr[0].set_yscale('log')
     axarr[0].set_ylim(1, axarr[0].get_ylim()[1])
-    axarr[1].set_ylim(-15, 15)
+    axarr[1].set_ylim(-.15, .15)
     #axarr[1].set_xlim(12.9, 15)
     leg = axarr[0].legend(loc=0, fontsize=6, numpoints=1, frameon=False)
     leg.get_frame().set_alpha(0.5)
