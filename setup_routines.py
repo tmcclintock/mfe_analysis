@@ -181,6 +181,8 @@ def realization(cosmology, emu_list, training_data, use_george=False, R=None):
     if use_george:
         x = np.atleast_2d(cosmology)
         y = training_data.T
+        for yi,gp in zip(y,emu_list):
+            print gp.predict(yi, x), gp.sample_conditional(yi, x)
         params = np.array([gp.sample_conditional(yi, x) for yi,gp in zip(y,emu_list)])
     else:
         params = np.array([emu.predict_one_point(cosmology)[0] for emu in emu_list])

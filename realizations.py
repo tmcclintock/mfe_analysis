@@ -29,7 +29,7 @@ building_cosmos = get_building_cosmos()
 testbox_cosmos = get_testbox_cosmos()
 name = 'dfg'
 mean_models, err_models, R = get_rotated_fits(name)
-N_realizations = 1
+N_realizations = 20
 
 #First train the emulators
 emu_list = train(building_cosmos, mean_models, err_models, use_george=usegeorge)
@@ -46,7 +46,7 @@ for i in range(0,1):
         axarr[0].errorbar(lM, N, err, marker='.', ls='', c=colors[j], alpha=1.0, label=r"$z=%.1f$"%redshifts[j])
 
     for real in range(N_realizations):
-        emu_model = get_realization(test_cosmo, emu_list, mean_models, R=R, use_george=usegeorge)
+        emu_model = realization(test_cosmo, emu_list, mean_models, R=R, use_george=usegeorge)
         #emu_model = predict_parameters(test_cosmo, emu_list, mean_models, R=R, use_george=usegeorge)
         print emu_model
         for j in range(0, N_z):

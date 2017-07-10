@@ -56,6 +56,8 @@ def calc_chi2():
 def plot_chi2():
     from scipy.stats import chi2
     chi2s = np.loadtxt("txt_files/chi2.txt")
+    good = np.where(chi2s < 200)[0]
+    chi2s = chi2s[good]
     dofs = np.loadtxt("txt_files/dofs.txt")
     df = np.mean(dofs)
     fchi2s = chi2s.flatten()
