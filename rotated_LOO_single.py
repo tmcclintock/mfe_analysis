@@ -53,6 +53,7 @@ for i in range(0,1):
     emu_model = predict_parameters(test_cosmo, emu_list, training_data, R=R, use_george=usegeorge)
 
     for j in range(0,N_z):
+        if j < 2: continue
         lM_bins, lM, N, err, cov = get_sim_data(i,j)
         nu = get_nu(scale_factors[j], 10**lM)
         if Xisnu: domain = nu
@@ -71,13 +72,15 @@ for i in range(0,1):
         axarr[0].plot(domain, N_bf, ls='--', c=colors[j], alpha=1.0)
         axarr[1].errorbar(domain, pd, pde, marker='.', ls='', c=colors[j], alpha=1.0)
     axarr[1].axhline(0, c='k', ls='-', zorder=-1)
+    axarr[1].axhline(-.01, c='k', ls='--', zorder=-1)
+    axarr[1].axhline(.01, c='k', ls='--', zorder=-1)
 
     axarr[1].set_xlabel(xlabel)
     axarr[0].set_ylabel(y0label)
     axarr[1].set_ylabel(y1label)
     axarr[0].set_yscale('log')
     axarr[0].set_ylim(1, axarr[0].get_ylim()[1])
-    axarr[1].set_ylim(-.14, .14)
+    axarr[1].set_ylim(-.08, .08)
     #axarr[1].set_ylim(-5, 5)
     #axarr[1].set_xlim(12.9, 15)
     leg = axarr[0].legend(loc=0, fontsize=6, numpoints=1, frameon=False)
