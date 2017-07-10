@@ -177,3 +177,12 @@ def predict_parameters(cosmology, emu_list, training_data, use_george=False, R=N
     if R is None: return params #Not using rotated version
     return np.dot(R, params)
 
+def realization(cosmology, emu_list, training_data, use_george=False, R=None):
+    if use_george:
+        x = np.atleast_2d(cosmology)
+        y = training_data.T
+        params = np.array([gp.sample_conditional(yi, x) for yi,gp in zip(y,emu_list)])
+    else:
+        params = np.array([emu.predict_one_point(cosmology)[0] for emu in emu_list])
+    if R is None: return params #Not using rotated version
+    return np.dot(R, params)

@@ -52,6 +52,7 @@ for i in range(0,1):
     emu_list = train(training_cosmos, training_data, training_errs, use_george=usegeorge)
     emu_model = predict_parameters(test_cosmo, emu_list, training_data, R=R, use_george=usegeorge)
 
+
     for j in range(0,N_z):
         if j < 2: continue
         lM_bins, lM, N, err, cov = get_sim_data(i,j)
