@@ -35,6 +35,7 @@ for i in range(0,1):
     cosmo_dict = get_cosmo_dict(i)
 
     for j in range(N_z):
+        if j <2: continue
         lM_bins, lM, N, err, cov = get_sim_data(i,j)
         axarr[0].errorbar(lM, N, err, marker='.', ls='', c=colors[j], alpha=1.0, label=r"$z=%.1f$"%redshifts[j])
 
@@ -68,7 +69,7 @@ axarr[0].set_ylim(1, axarr[0].get_ylim()[1])
 axarr[1].set_ylim(-.05, .05)
 leg = axarr[0].legend(loc=0, fontsize=8, numpoints=1, frameon=False)
 leg.get_frame().set_alpha(0.5)
-plt.subplots_adjust(bottom=0.15, left=0.15, hspace=0.0)
+plt.subplots_adjust(bottom=0.15, left=0.18, hspace=0.0)
 #fig.savefig("fig_BF.pdf")
 fig.savefig("fig_BF.png")
 plt.show()
