@@ -107,13 +107,14 @@ def fit_delta0():
     plt.show()
 
 def get_bigdelta():
-    delta0s = np.loadtxt("txt_files/delta0.txt")[:,0]
+    delta0s = 0#np.loadtxt("txt_files/delta0.txt")[:,0]
     Deltas = []
     eDeltas = []
     nus = []
     lMs = []
+    zs = []
     for i in range(0,N_cosmos):
-        delta0 = delta0s[i]*0 #REMOVING delta0 HERE BECAUSE IT DOESN'T EXIST
+        #delta0 = delta0s[i]*0 #REMOVING delta0 HERE BECAUSE IT DOESN'T EXIST
         cosmo_dict = get_cosmo_dict(i)
         test_cosmo = building_cosmos[i]
         test_data  = mean_models[i]
@@ -134,34 +135,37 @@ def get_bigdelta():
             TMF_model.set_parameters(d,e,f,g,B)
             N_bf = volume * TMF_model.n_in_bins(lM_bins)
             bG = get_bG(scale_factors[j], 10**lM)
-            Delta = (N-N_bf)/N_bf - bG*delta0
+            Delta = (N-N_bf)/N_bf #- bG*delta0
             eDelta = err/N_bf
             nu = get_nu(scale_factors[j], 10**lM)
             Deltas = np.concatenate((Deltas, Delta))
             eDeltas = np.concatenate((eDeltas, eDelta))
+            this_z = np.ones_like(nu)*redshifts[j]
             nus = np.concatenate((nus, nu))
             lMs = np.concatenate((lMs, lM))
+            zs = np.concatenate((zs, this_z))
         print "Got bigDeltas for box%03d"%i
-    out = np.array([lMs, nus, Deltas, eDeltas]).T
+    out = np.array([zs, lMs, nus, Deltas, eDeltas]).T
     np.savetxt("txt_files/bigDeltas.txt", out)
     return
 
 def plot_bigDelta():
     np.random.seed(12345666)
     data = np.genfromtxt("txt_files/bigDeltas.txt")
-    L = len(data)/3
+    L = len(data)/5
     newdata = np.random.permutation(data)[:L]
-    nu = newdata[:,1]
-    inds = np.where(nu < 5)[0]
-    #newdata = newdata[inds]
-    lM, nu, Delta, eDelta = newdata.T
+    nu = newdata[:,2]
+    Delta = newdata[:,3]
+    inds = np.where(np.fabs(Delta) < 1)[0]
+    newdata = newdata[inds]
+    z, lM, nu, Delta, eDelta = newdata.T
     x = nu
     aDelta = np.fabs(Delta)
     print np.mean(Delta), np.mean(eDelta), max(nu), min(nu)
     import george
-    k,l = 1000, 10
-    #kernel = k*george.kernels.ExpKernel(l)
-    kernel = k*george.kernels.ExpSquaredKernel(l)
+    k,l = 100, 10
+    kernel = k*george.kernels.ExpKernel(l)
+    #kernel = k*george.kernels.ExpSquaredKernel(l)
     gp = george.GP(kernel)#, mean=np.mean(Delta))
     print "computing with george"
     gp.compute(x=x, yerr=eDelta)
@@ -177,9 +181,9 @@ def plot_bigDelta():
     #plt.scatter(x, Delta,  alpha=0.2, marker='.')
     plt.plot(t, mu, c='r')
     plt.fill_between(t, mu-err, mu+err, color='r', alpha=0.3)
-    for i in range(10):
-        cond = gp.sample_conditional(Delta, t)
-        plt.plot(t, cond, ls='-', c='k', alpha=0.5)
+    #for i in range(10):
+    #    cond = gp.sample_conditional(Delta, t)
+    #    plt.plot(t, cond, ls='-', c='k', alpha=0.5)
 
     #plt.fill_between(t, mu, -mu, color='r', alpha=0.3)
     plt.axhline(-0.01, c='k', ls='--')
