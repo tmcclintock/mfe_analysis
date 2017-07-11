@@ -107,14 +107,14 @@ def fit_delta0():
     plt.show()
 
 def get_bigdelta():
-    delta0s = 0#np.loadtxt("txt_files/delta0.txt")[:,0]
     Deltas = []
     eDeltas = []
     nus = []
     lMs = []
     zs = []
+    siminds = []
+    zinds = []
     for i in range(0,N_cosmos):
-        #delta0 = delta0s[i]*0 #REMOVING delta0 HERE BECAUSE IT DOESN'T EXIST
         cosmo_dict = get_cosmo_dict(i)
         test_cosmo = building_cosmos[i]
         test_data  = mean_models[i]
@@ -127,8 +127,6 @@ def get_bigdelta():
         emu_model = predict_parameters(test_cosmo, emu_list, training_data, R=R, use_george=usegeorge)
         for j in range(N_z):
             lM_bins, lM, N, err, cov = get_sim_data(i,j)
-            outcov = np.zeros_like(cov)
-
             #Get emulated curves
             TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
             d,e,f,g,B = get_params(emu_model, scale_factors[j])
@@ -141,11 +139,15 @@ def get_bigdelta():
             Deltas = np.concatenate((Deltas, Delta))
             eDeltas = np.concatenate((eDeltas, eDelta))
             this_z = np.ones_like(nu)*redshifts[j]
+            thissim = np.ones_like(nu)*i
+            thesezs = np.ones_like(nu)*j
             nus = np.concatenate((nus, nu))
             lMs = np.concatenate((lMs, lM))
             zs = np.concatenate((zs, this_z))
+            siminds = np.concatenate((siminds, thissim))
+            zinds = np.concatenate((zinds, thesezs))
         print "Got bigDeltas for box%03d"%i
-    out = np.array([zs, lMs, nus, Deltas, eDeltas]).T
+    out = np.array([zs, lMs, nus, Deltas, eDeltas, siminds, zinds]).T
     np.savetxt("txt_files/bigDeltas.txt", out)
     return
 
@@ -219,9 +221,27 @@ def plot_bigDelta():
     plt.subplots_adjust(left=0.22, bottom=0.15)
     plt.show()
 
+def stats_on_Delta():
+    sf, zs = get_sf_and_redshifts()
+    data = np.genfromtxt("txt_files/bigDeltas.txt")
+    z, lM, nu, Delta, eDelta = data.T
+    print np.max(Delta), np.min(Delta)
+    print data.shape
+    good = np.where(np.fabs(Delta) < 0.5)
+    print len(data) - len(good[0])
+    data = data[good]
+    print data.shape
+    z, lM, nu, Delta, eDelta = data.T
+    weights = eDelta**-2
+    print np.mean(Delta), np.mean(eDelta)
+    print np.average(Delta, weights=weights)
+    print np.average(eDelta, weights=weights)
+    return
+
 if __name__ == "__main__":
     #make_delta0()
     #fit_delta0()
     #get_bigdelta()
-    plot_Delta_scatter()
+    stats_on_Delta()
+    #plot_Delta_scatter()
     #plot_bigDelta()
