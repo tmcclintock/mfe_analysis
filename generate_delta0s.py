@@ -149,6 +149,27 @@ def get_bigdelta():
     np.savetxt("txt_files/bigDeltas.txt", out)
     return
 
+def plot_scatter():
+    colors = get_colors()
+    sf, zs = get_sf_and_redshifts()
+    data = np.genfromtxt("txt_files/bigDeltas.txt")
+    z, lM, nu, Delta, eDelta = data.T
+    good = np.where(np.fabs(Delta) < 0.5)
+    data = data[good]
+    z, lM, nu, Delta, eDelta = data.T
+    x = nu
+    for i in range(len(colors)):
+        inds = np.where(z == zs[i])[0]
+        plt.scatter(x[inds], Delta[inds], alpha=0.1, marker='.', c=colors[i])
+    plt.axhline(-0.01, c='k', ls='--')
+    plt.axhline(0.01, c='k', ls='--')
+    plt.axhline(0.0, c='k', ls='-')
+    plt.ylim(-0.1, 0.1)
+    plt.xlabel(r"$\nu$", fontsize=24)
+    plt.ylabel(r"$\Delta N/N_{\rm emu}$", fontsize=24)
+    plt.subplots_adjust(bottom=0.15, left=0.2)
+    plt.show()
+
 def plot_bigDelta():
     np.random.seed(12345666)
     data = np.genfromtxt("txt_files/bigDeltas.txt")
@@ -156,21 +177,21 @@ def plot_bigDelta():
     newdata = np.random.permutation(data)[:L]
     nu = newdata[:,2]
     Delta = newdata[:,3]
-    inds = np.where(np.fabs(Delta) < 1)[0]
+    inds = np.where(np.fabs(Delta) < 10)[0]
     newdata = newdata[inds]
     z, lM, nu, Delta, eDelta = newdata.T
     x = nu
     aDelta = np.fabs(Delta)
     print np.mean(Delta), np.mean(eDelta), max(nu), min(nu)
     import george
-    k,l = 100, 10
-    kernel = k*george.kernels.ExpKernel(l)
-    #kernel = k*george.kernels.ExpSquaredKernel(l)
+    k,l = 1e2, 1e-6
+    #kernel = k*george.kernels.ExpKernel(l)
+    kernel = k*george.kernels.ExpSquaredKernel(l)
     gp = george.GP(kernel)#, mean=np.mean(Delta))
     print "computing with george"
     gp.compute(x=x, yerr=eDelta)
     print "One compute done"
-    gp.optimize(x=x, y=Delta, yerr=eDelta)
+    #gp.optimize(x=x, y=Delta, yerr=eDelta)
     print "george optimized"
     print gp.kernel
     t = np.linspace(min(x)-1, max(x)+1, 100)
@@ -201,4 +222,5 @@ if __name__ == "__main__":
     #make_delta0()
     #fit_delta0()
     #get_bigdelta()
-    plot_bigDelta()
+    plot_scatter()
+    #plot_bigDelta()
