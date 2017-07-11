@@ -149,7 +149,7 @@ def get_bigdelta():
     np.savetxt("txt_files/bigDeltas.txt", out)
     return
 
-def plot_scatter():
+def plot_Delta_scatter():
     colors = get_colors()
     sf, zs = get_sf_and_redshifts()
     data = np.genfromtxt("txt_files/bigDeltas.txt")
@@ -222,5 +222,5 @@ if __name__ == "__main__":
     #make_delta0()
     #fit_delta0()
     #get_bigdelta()
-    plot_scatter()
+    plot_Delta_scatter()
     #plot_bigDelta()
