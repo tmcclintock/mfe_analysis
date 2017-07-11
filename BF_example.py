@@ -31,7 +31,8 @@ def get_bG(cosmo_dict, a, Masses):
 
 fig, axarr = plt.subplots(2, sharex=True)
 
-for i in range(0,1):
+BOX=2
+for i in range(BOX,BOX+1):
     cosmo_dict = get_cosmo_dict(i)
 
     for j in range(N_z):

@@ -32,7 +32,8 @@ mean_models, err_models, R = get_rotated_fits(name)
 emu_list = train(building_cosmos, mean_models, err_models, use_george=usegeorge)
 
 #Loop over test boxes and do everything
-for i in range(0,1):
+BOX=2
+for i in range(BOX,BOX+1):
     fig, axarr = plt.subplots(2, sharex=True)
     test_cosmo = testbox_cosmos[i]
     cosmo_dict = get_testbox_cosmo_dict(i)
@@ -66,7 +67,7 @@ for i in range(0,1):
     axarr[0].set_ylim(1, axarr[0].get_ylim()[1])
     axarr[1].set_ylim(-.08, .08)
     #axarr[1].set_xlim(12.9, 15)
-    leg = axarr[0].legend(loc="lower left", fontsize=6, numpoints=1, frameon=False)
+    leg = axarr[0].legend(loc="lower left", fontsize=8, numpoints=1, frameon=False)
     leg.get_frame().set_alpha(0.5)
     plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.0)
     #plt.gcf().savefig("with_george_testbox%03d.png"%i)
