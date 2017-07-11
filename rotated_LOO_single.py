@@ -18,7 +18,7 @@ if Xisnu: xlabel = r"$\nu$"
 else: xlabel  = r"$\log_{10}M\ [{\rm M_\odot}/h]$"
 
 y0label = r"$N/[{\rm Gpc}^3\  \log_{10}{\rm M_\odot}/h]$"
-y0label = r"$N/[{\rm Gpc}^3\  \log{\rm M}]$"
+#y0label = r"$N/[{\rm Gpc}^3\  \log{\rm M}]$"
 y1label = r"$\%\ {\rm Diff}$"
 #y1label = r"$\frac{N-N_{emu}}{N_{emu}bG}$"
 
@@ -84,7 +84,7 @@ for i in range(0,1):
     axarr[1].set_ylim(-.08, .08)
     #axarr[1].set_ylim(-5, 5)
     #axarr[1].set_xlim(12.9, 15)
-    leg = axarr[0].legend(loc=0, fontsize=6, numpoints=1, frameon=False)
+    leg = axarr[0].legend(loc="lower left", fontsize=8, numpoints=1, frameon=False)
     leg.get_frame().set_alpha(0.5)
     plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.0)
     #fig.savefig("fig_emurot.png")

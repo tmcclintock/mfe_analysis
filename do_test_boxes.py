@@ -14,7 +14,7 @@ usegeorge = True
 
 xlabel  = r"$\log_{10}M\ [{\rm M_\odot}/h]$"
 y0label = r"$N/[{\rm Gpc}^3\  \log_{10}{\rm M_\odot}/h]$"
-y0label = r"$N/[{\rm Gpc}^3\  \log{\rm M}]$"
+#y0label = r"$N/[{\rm Gpc}^3\  \log{\rm M}]$"
 y1label = r"$\%\ {\rm Diff}$"
 #y1label = r"$\frac{N-N_{emu}}{N_{emu}bG}$"
 
@@ -39,6 +39,7 @@ for i in range(0,1):
     emu_model = predict_parameters(test_cosmo, emu_list, mean_models, R=R, use_george=usegeorge)
 
     for j in range(0, N_z):
+        if j < 2: continue
         lM_bins, lM, N, err, cov = get_testbox_data(i,j)
         axarr[0].errorbar(lM, N, err, marker='.', ls='', c=colors[j], alpha=1.0, label=r"$z=%.1f$"%redshifts[j])
 
@@ -65,7 +66,7 @@ for i in range(0,1):
     axarr[0].set_ylim(1, axarr[0].get_ylim()[1])
     axarr[1].set_ylim(-.08, .08)
     #axarr[1].set_xlim(12.9, 15)
-    leg = axarr[0].legend(loc=0, fontsize=6, numpoints=1, frameon=False)
+    leg = axarr[0].legend(loc="lower left", fontsize=6, numpoints=1, frameon=False)
     leg.get_frame().set_alpha(0.5)
     plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.0)
     #plt.gcf().savefig("with_george_testbox%03d.png"%i)
