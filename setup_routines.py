@@ -57,11 +57,12 @@ def get_testbox_cosmo_dict(index):
                   "s8":sigma8, "ns":ns, "w0":w0, "wa":0.0}
     return cosmo_dict
 
-def get_building_cosmos(remove_As=True):
+def get_building_cosmos(remove_As=True, drop39=True):
     building_cosmos = np.delete(cosmologies, 0, 1) #Delete boxnum
     if remove_As:
         building_cosmos = np.delete(building_cosmos, 4, 1) #Delete ln10As
-    building_cosmos = np.delete(building_cosmos, -1, 0)#39 is broken
+    if drop39:
+        building_cosmos = np.delete(building_cosmos, -1, 0)#39 is broken
     return building_cosmos
 
 def get_testbox_cosmos():
