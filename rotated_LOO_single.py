@@ -37,7 +37,7 @@ def get_bG(cosmo_dict, a, Masses):
 def get_nu(a, Masses):
     return 1.686/np.array([cc.sigmaMtophat(Mi, a) for Mi in Masses])
 
-BOX = 2
+BOX = 12
 for i in range(BOX, BOX+1):
     fig, axarr = plt.subplots(2, sharex=True)
     cosmo_dict = get_cosmo_dict(i)
@@ -88,6 +88,6 @@ for i in range(BOX, BOX+1):
     leg = axarr[0].legend(loc="lower left", fontsize=8, numpoints=1, frameon=False)
     leg.get_frame().set_alpha(0.5)
     plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.0)
-    fig.savefig("fig_emurot.png")
+    #fig.savefig("fig_emurot.png")
     plt.show()
     plt.clf()

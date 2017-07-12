@@ -224,18 +224,22 @@ def plot_bigDelta():
 def stats_on_Delta():
     sf, zs = get_sf_and_redshifts()
     data = np.genfromtxt("txt_files/bigDeltas.txt")
-    z, lM, nu, Delta, eDelta = data.T
+    z, lM, nu, Delta, eDelta, thei, thej = data.T
     print np.max(Delta), np.min(Delta)
     print data.shape
-    good = np.where(np.fabs(Delta) < 0.5)
+    cut = 0.5
+    good = np.where(np.fabs(Delta) < cut)
+    bad = np.where(np.fabs(Delta) > cut)[0]
+    bads = np.array([data[bad]]).T[3:]
     print len(data) - len(good[0])
     data = data[good]
     print data.shape
-    z, lM, nu, Delta, eDelta = data.T
+    z, lM, nu, Delta, eDelta, thei_new, thej_new = data.T
     weights = eDelta**-2
     print np.mean(Delta), np.mean(eDelta)
     print np.average(Delta, weights=weights)
     print np.average(eDelta, weights=weights)
+    print bads
     return
 
 if __name__ == "__main__":
@@ -245,3 +249,5 @@ if __name__ == "__main__":
     stats_on_Delta()
     #plot_Delta_scatter()
     #plot_bigDelta()
+    print building_cosmos.shape
+    print building_cosmos[12]

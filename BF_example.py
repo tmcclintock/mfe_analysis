@@ -31,7 +31,7 @@ def get_bG(cosmo_dict, a, Masses):
 
 fig, axarr = plt.subplots(2, sharex=True)
 
-BOX=2
+BOX=12
 for i in range(BOX,BOX+1):
     cosmo_dict = get_cosmo_dict(i)
 
@@ -72,5 +72,6 @@ leg = axarr[0].legend(loc=0, fontsize=8, numpoints=1, frameon=False)
 leg.get_frame().set_alpha(0.5)
 plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.0)
 #fig.savefig("fig_BF.pdf")
-fig.savefig("fig_BF.png")
+#fig.savefig("fig_BF.png")
 plt.show()
+plt.clf()
