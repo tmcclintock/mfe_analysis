@@ -174,6 +174,8 @@ def plot_Delta_scatter():
     plt.show()
 
 def plot_bigDelta():
+    colors = get_colors()
+    sf, zs = get_sf_and_redshifts()
     np.random.seed(12345666)
     data = np.genfromtxt("txt_files/bigDeltas.txt")
     L = len(data)/5
@@ -183,36 +185,38 @@ def plot_bigDelta():
     #inds = np.where(np.fabs(Delta) < 10)[0]
     #newdata = newdata[inds]
     z, lM, nu, Delta, eDelta, thei, thej = data.T
-    x = nu
+    x = np.array([nu,z]).T
+    x0 = nu
+    print x.shape
+    ZEROS = np.zeros_like(Delta)
     aDelta = np.fabs(Delta)
     print np.mean(Delta), np.mean(eDelta), max(nu), min(nu)
     import george
-    k,l, k2 = 1, 1e2, 1e-2
-    kernel = george.kernels.ExpSquaredKernel(l)
+    k,l = 1e-2, 3.5
+    metric = l*np.ones_like(x[0])
+    metric = np.array([0.537, 0.81318])
+    kernel = k*george.kernels.ExpSquaredKernel(metric=metric, ndim=2)
     gp = george.GP(kernel)#, mean=np.mean(Delta))
     print "computing with george"
     gp.compute(x=x, yerr=eDelta)
     print "One compute done"
-    gp.optimize(x=x, y=Delta, yerr=eDelta)
+    #gp.optimize(x=x, y=Delta, yerr=eDelta)
     print "george optimized"
     print gp.kernel
-    t = np.linspace(min(x)-1, max(x)+1, 100)
-    mu, cov = gp.predict(Delta, t)
-    err = np.sqrt(np.diag(cov))
-    plt.errorbar(x, Delta, eDelta, alpha=0.1, ls='', marker='.', zorder=-1)
-    #plt.scatter(x, Delta,  alpha=0.2, marker='.')
-    plt.plot(t, mu, c='r')
-    plt.fill_between(t, mu-err, mu+err, color='r', alpha=0.3)
-    #for i in range(10):
-    #    cond = gp.sample_conditional(Delta, t)
-    #    plt.plot(t, cond, ls='-', c='k', alpha=0.5)
-
-    #plt.fill_between(t, mu, -mu, color='r', alpha=0.3)
+    for i in range(len(colors)):
+        inds = np.where(z == zs[i])[0]
+        #plt.errorbar(x0[inds], Delta[inds], eDelta[inds], alpha=0.1, ls='', marker='.', zorder=-1, c=colors[i])
+        t0 = np.linspace(min(x0)-1, max(x0)+1, 100)
+        t = np.array([t0, zs[i]*np.ones_like(t0)]).T
+        mu, cov = gp.predict(ZEROS, t)
+        err = np.sqrt(np.diag(cov))
+        #plt.plot(t, mu, c=colors[i])
+        plt.fill_between(t0, mu-err, mu+err, color=colors[i], alpha=0.1,zorder=-(i-10))
     plt.axhline(-0.01, c='k', ls='--')
     plt.axhline(0.01, c='k', ls='--')
     plt.axhline(0.0, c='k', ls='-')
-    plt.axvline(max(x), c='g', ls='-')
-    plt.axvline(min(x), c='g', ls='-')
+    plt.axvline(max(x0), c='g', ls='-')
+    plt.axvline(min(x0), c='g', ls='-')
     plt.ylim(-0.1, 0.1)
     plt.xlabel(r"$\nu$")
     plt.ylabel(r"$\Delta=\frac{\Delta N}{N_{emu}}$")
