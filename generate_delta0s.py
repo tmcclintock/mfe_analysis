@@ -182,26 +182,24 @@ def plot_bigDelta():
     Delta = newdata[:,3]
     #inds = np.where(np.fabs(Delta) < 10)[0]
     #newdata = newdata[inds]
-    z, lM, nu, Delta, eDelta = newdata.T
+    z, lM, nu, Delta, eDelta, thei, thej = data.T
     x = nu
     aDelta = np.fabs(Delta)
     print np.mean(Delta), np.mean(eDelta), max(nu), min(nu)
     import george
-    k,l = 1e2, 1e-6
-    #kernel = k*george.kernels.ExpKernel(l)
-    kernel = k*george.kernels.ExpSquaredKernel(l)
+    k,l, k2 = 1, 1e2, 1e-2
+    kernel = george.kernels.ExpSquaredKernel(l)
     gp = george.GP(kernel)#, mean=np.mean(Delta))
     print "computing with george"
     gp.compute(x=x, yerr=eDelta)
     print "One compute done"
-    #gp.optimize(x=x, y=Delta, yerr=eDelta)
+    gp.optimize(x=x, y=Delta, yerr=eDelta)
     print "george optimized"
     print gp.kernel
     t = np.linspace(min(x)-1, max(x)+1, 100)
     mu, cov = gp.predict(Delta, t)
     err = np.sqrt(np.diag(cov))
-
-    plt.errorbar(x, Delta, eDelta, alpha=0.2, ls='', marker='.', zorder=-1)
+    plt.errorbar(x, Delta, eDelta, alpha=0.1, ls='', marker='.', zorder=-1)
     #plt.scatter(x, Delta,  alpha=0.2, marker='.')
     plt.plot(t, mu, c='r')
     plt.fill_between(t, mu-err, mu+err, color='r', alpha=0.3)
@@ -239,8 +237,7 @@ def stats_on_Delta():
     print np.mean(Delta), np.mean(eDelta)
     print np.average(Delta, weights=weights)
     print np.average(eDelta, weights=weights)
-    print bads.shape
-    print bads
+    #print bads.shape
     return
 
 if __name__ == "__main__":
@@ -249,4 +246,4 @@ if __name__ == "__main__":
     #get_bigdelta()
     stats_on_Delta()
     #plot_Delta_scatter()
-    #plot_bigDelta()
+    plot_bigDelta()
