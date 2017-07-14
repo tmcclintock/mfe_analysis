@@ -155,10 +155,10 @@ def plot_Delta_scatter():
     colors = get_colors()
     sf, zs = get_sf_and_redshifts()
     data = np.genfromtxt("txt_files/bigDeltas.txt")
-    z, lM, nu, Delta, eDelta = data.T
-    good = np.where(np.fabs(Delta) < 0.5)
-    data = data[good]
-    z, lM, nu, Delta, eDelta = data.T
+    z, lM, nu, Delta, eDelta, thei, thej = data.T
+    #good = np.where(np.fabs(Delta) < 0.5)
+    #data = data[good]
+    z, lM, nu, Delta, eDelta, thei, thej = data.T
     x = nu
     for i in range(len(colors)):
         inds = np.where(z == zs[i])[0]
@@ -180,8 +180,8 @@ def plot_bigDelta():
     newdata = np.random.permutation(data)[:L]
     nu = newdata[:,2]
     Delta = newdata[:,3]
-    inds = np.where(np.fabs(Delta) < 10)[0]
-    newdata = newdata[inds]
+    #inds = np.where(np.fabs(Delta) < 10)[0]
+    #newdata = newdata[inds]
     z, lM, nu, Delta, eDelta = newdata.T
     x = nu
     aDelta = np.fabs(Delta)
@@ -227,10 +227,10 @@ def stats_on_Delta():
     z, lM, nu, Delta, eDelta, thei, thej = data.T
     print np.max(Delta), np.min(Delta)
     print data.shape
-    cut = 0.5
+    cut = 2
     good = np.where(np.fabs(Delta) < cut)
     bad = np.where(np.fabs(Delta) > cut)[0]
-    bads = np.array([data[bad]]).T[3:]
+    bads = np.array([data[bad]]).T[5:]
     print len(data) - len(good[0])
     data = data[good]
     print data.shape
@@ -239,6 +239,7 @@ def stats_on_Delta():
     print np.mean(Delta), np.mean(eDelta)
     print np.average(Delta, weights=weights)
     print np.average(eDelta, weights=weights)
+    print bads.shape
     print bads
     return
 
@@ -249,5 +250,3 @@ if __name__ == "__main__":
     stats_on_Delta()
     #plot_Delta_scatter()
     #plot_bigDelta()
-    print building_cosmos.shape
-    print building_cosmos[12]

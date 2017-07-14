@@ -158,7 +158,6 @@ def train(training_cosmos, training_data, training_errs, use_george=False):
         if use_george:
             lguess = (np.max(training_cosmos,0) - np.min(training_cosmos,0))/N_cosmos
             kernel = 1.*george.kernels.ExpSquaredKernel(metric=lguess, ndim=len(training_cosmos[0])) + george.kernels.WhiteKernel(1, ndim=len(training_cosmos[0]))
-            print kernel
             gp = george.GP(kernel)
             gp.compute(training_cosmos, yerr)
             gp.optimize(training_cosmos, y, yerr, verbose=False)
