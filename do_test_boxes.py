@@ -33,7 +33,8 @@ emu_list = train(building_cosmos, mean_models, err_models, use_george=usegeorge)
 
 #Loop over test boxes and do everything
 BOX=1
-for i in range(BOX,BOX+1):
+#for i in range(BOX,BOX+1):
+for i in range(0,7):
     fig, axarr = plt.subplots(2, sharex=True)
     test_cosmo = testbox_cosmos[i]
     cosmo_dict = get_testbox_cosmo_dict(i)
