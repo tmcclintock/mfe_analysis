@@ -63,7 +63,7 @@ for i in range(BOX, BOX+1):
 
         #Get emulated curves
         TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
-        d,e,f,g,B = get_params(emu_model, scale_factors[j])
+        d,e,f,g,B = get_params(emu_model, scale_factors[j], name=name)
         TMF_model.set_parameters(d,e,f,g,B)
         N_bf = volume * TMF_model.n_in_bins(lM_bins)
 
