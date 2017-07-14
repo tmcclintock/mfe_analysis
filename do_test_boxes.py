@@ -32,7 +32,7 @@ mean_models, err_models, R = get_rotated_fits(name)
 emu_list = train(building_cosmos, mean_models, err_models, use_george=usegeorge)
 
 #Loop over test boxes and do everything
-BOX=2
+BOX=1
 for i in range(BOX,BOX+1):
     fig, axarr = plt.subplots(2, sharex=True)
     test_cosmo = testbox_cosmos[i]
@@ -71,6 +71,6 @@ for i in range(BOX,BOX+1):
     leg.get_frame().set_alpha(0.5)
     plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.0)
     #plt.gcf().savefig("with_george_testbox%03d.png"%i)
-    plt.gcf().savefig("testbox_example.png")
+    #plt.gcf().savefig("testbox_example.png")
     plt.show()
     plt.clf()
