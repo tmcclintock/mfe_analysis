@@ -37,7 +37,7 @@ def get_bG(cosmo_dict, a, Masses):
 def get_nu(a, Masses):
     return 1.686/np.array([cc.sigmaMtophat(Mi, a) for Mi in Masses])
 
-BOX = 23
+BOX = 0
 for i in range(BOX, BOX+1):
     fig, axarr = plt.subplots(2, sharex=True)
     cosmo_dict = get_cosmo_dict(i)

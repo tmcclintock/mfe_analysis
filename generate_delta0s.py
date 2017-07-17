@@ -167,6 +167,7 @@ def plot_Delta_scatter():
     plt.axhline(0.01, c='k', ls='--')
     plt.axhline(0.0, c='k', ls='-')
     plt.ylim(-0.1, 0.1)
+    plt.xlim(0,7)
     plt.xlabel(r"$\nu$", fontsize=24)
     plt.ylabel(r"$\Delta N/N_{\rm emu}$", fontsize=24)
     plt.subplots_adjust(bottom=0.15, left=0.2)
@@ -178,7 +179,7 @@ def plot_bigDelta():
     sf, zs = get_sf_and_redshifts()
     np.random.seed(12345666)
     data = np.genfromtxt("txt_files/bigDeltas.txt")
-    L = len(data)/5
+    L = len(data)/3
     newdata = np.random.permutation(data)[:L]
     nu = newdata[:,2]
     Delta = newdata[:,3]
@@ -220,9 +221,11 @@ def plot_bigDelta():
     plt.axvline(max(x0), c='g', ls='-')
     plt.axvline(min(x0), c='g', ls='-')
     plt.ylim(-0.1, 0.1)
-    plt.xlabel(r"$\nu$")
-    plt.ylabel(r"$\Delta=\frac{\Delta N}{N_{emu}}$")
-    plt.subplots_adjust(left=0.22, bottom=0.15)
+    plt.xlim(0,7)
+    plt.xlabel(r"$\nu$", fontsize=24)
+    plt.ylabel(r"$\Delta N/N_{\rm emu}$", fontsize=24)
+    plt.subplots_adjust(left=0.2, bottom=0.15)
+    plt.gcf().savefig("Delta_emu.png")
     plt.show()
 
 def stats_on_Delta():
