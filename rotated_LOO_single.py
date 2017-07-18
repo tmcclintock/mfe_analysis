@@ -88,6 +88,7 @@ for i in range(BOX, BOX+1):
     leg = axarr[0].legend(loc="lower left", fontsize=8, numpoints=1, frameon=False)
     leg.get_frame().set_alpha(0.5)
     plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.0)
-    fig.savefig("fig_emurot.png")
+    fig.savefig("pdf_figures/fig_emurot.pdf")
+    #fig.savefig("fig_emurot.png")
     plt.show()
     plt.clf()

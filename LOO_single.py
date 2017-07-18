@@ -72,5 +72,6 @@ for i in range(0,1):
     leg = axarr[0].legend(loc=0, fontsize=8, numpoints=1, frameon=False)
     leg.get_frame().set_alpha(0.5)
     plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.0)
-    fig.savefig("fig_emubad.png")
+    fig.savefig("pdf_figures/fig_emubad.pdf")
+    #fig.savefig("fig_emubad.png")
     plt.show()
