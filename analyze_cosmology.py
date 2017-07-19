@@ -26,6 +26,13 @@ mean_models, err_models, R = get_rotated_fits(name)
 #First train the emulators
 emu_list = train(building_cosmos, mean_models, err_models, use_george=usegeorge)
 
+def lnprior(params):
+    print "todo"
+def lnlike(params, data, emulist):
+    print "todo"
+def lnprob(params, data, emulist):
+    print "todo"
+
 def fit_box(box):
     #Fit this particular box to find the cosomology
     #Grab the data
@@ -33,10 +40,14 @@ def fit_box(box):
     N_data = []
     covs = []
     for i in range(N_z):
-        lM_bins_i, lM, N_i, err, cov_i = get_testbox_data(i,j)
+        lM_bins_i, lM, N_i, err, cov_i = get_testbox_data(box,i)
         lM_bins.append(lM_bins_i)
         N_data.append(N_i)
         covs.append(cov_i)
     #create the sampler
     #set the initial walker locations to be scattered around the truth
-    truth = testboxt_cosmos[box]
+    truth = testbox_cosmos[box]
+    print truth
+
+if __name__ == "__main__":
+    fit_box(0)
