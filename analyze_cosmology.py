@@ -27,7 +27,11 @@ mean_models, err_models, R = get_rotated_fits(name)
 emu_list = train(building_cosmos, mean_models, err_models, use_george=usegeorge)
 
 def lnprior(params):
-    print "todo"
+    #Ombh2 Omch2 w0 ns H0 Neff sigma8
+    ombh2, omch2, w0, ns, H0, Neff, sigma8 = params
+    if ombh2 < 0 or omch2 < 0 or w0 > 0 or ns < 0 or H0 < 0 or Neff < 0 or sigma8 < 0: return -np.inf #enforce these signs
+    return 0
+
 def lnlike(params, data, emulist):
     print "todo"
 def lnprob(params, data, emulist):
@@ -48,6 +52,7 @@ def fit_box(box):
     #set the initial walker locations to be scattered around the truth
     truth = testbox_cosmos[box]
     print truth
+    print lnprior(truth)
 
 if __name__ == "__main__":
     fit_box(0)
