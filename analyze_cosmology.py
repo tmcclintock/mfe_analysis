@@ -26,6 +26,17 @@ mean_models, err_models, R = get_rotated_fits(name)
 #First train the emulators
 emu_list = train(building_cosmos, mean_models, err_models, use_george=usegeorge)
 
+def get_cosmo_dict(cosmo):
+    """
+    Return a cosmo dictionary for use in cosmocalc
+    """
+    ombh2, omch2, w0, ns, H0, Neff, sigma8 = cosmo
+    h = H0/100.
+    Ob,Om = ombh2/(h**2), ombh2/(h**2)+omch2/(h**2)
+    cosmo_dict = {"om":Om, "ob":Ob, "ol":1-Om, "ok":0.0, "h":h, 
+                  "s8":sigma8, "ns":ns, "w0":w0, "wa":0.0}
+    return cosmo_dict
+
 def lnprior(params):
     #Ombh2 Omch2 w0 ns H0 Neff sigma8
     ombh2, omch2, w0, ns, H0, Neff, sigma8 = params
@@ -33,6 +44,7 @@ def lnprior(params):
     return 0
 
 def lnlike(params, data, emulist):
+    lM_bins, N_Data, covs = data
     print "todo"
 def lnprob(params, data, emulist):
     print "todo"
@@ -53,6 +65,7 @@ def fit_box(box):
     truth = testbox_cosmos[box]
     print truth
     print lnprior(truth)
+    print get_cosmo_dict(truth)
 
 if __name__ == "__main__":
     fit_box(0)
