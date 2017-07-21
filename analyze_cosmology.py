@@ -41,31 +41,57 @@ def lnprior(params):
     #Ombh2 Omch2 w0 ns H0 Neff sigma8
     ombh2, omch2, w0, ns, H0, Neff, sigma8 = params
     if ombh2 < 0 or omch2 < 0 or w0 > 0 or ns < 0 or H0 < 0 or Neff < 0 or sigma8 < 0: return -np.inf #enforce these signs
+    #Could get the MF params and have a prior on that...
     return 0
 
-def lnlike(params, data, emulist):
-    lM_bins, N_Data, covs = data
-    print "todo"
-def lnprob(params, data, emulist):
-    print "todo"
+def lnlike(params, data, emu_list, zs, sfs):
+    cosmo_dict = get_cosmo_dict(params)
+    emu_model = predict_parameters(params, emu_list, mean_models, R=R, use_george=usegeorge)
+    lM_bins_all, N_data, icovs = data
+    LL = 0
+    for j in range(len(zs)):
+        lM_bins = lM_bins_all[j]
+        N = N_data[j]
+        icov = icovs[j]
+        TMF_model = TMF.tinker_mass_function(cosmo_dict, zs[j])
+        d,e,f,g,B = get_params(emu_model, sfs[j])
+        TMF_model.set_parameters(d,e,f,g,B)
+        N_emu = volume * TMF_model.n_in_bins(lM_bins)
+        X = N - N_emu
+        LL += np.dot(X, np.dot(icov, X))
+    return LL
+
+def lnprob(params, data, emu_list, zs, sfs):
+    lpr = lnprior(params)
+    if not np.isfinite(lpr): return -np.inf
+    return lpr + lnlike(params, data, emu_list, zs, sfs)
+
+def do_maximize(params, data, emu_list, zs, sfs, truth):
+    import scipy.optimize as op
+    lnprob_args = (data, emu_list, zs, sfs)
+    nll = lambda *args: -lnprob(*args)
+    print "Finding best fit"    
+    result = op.minimize(nll, params, args=lnprob_args, tol=1e-4)
+    np.savetxt("txt_files/bf_cosmo.txt", result['x'])
+    print result
+    print "truth = ", truth
+    return
 
 def fit_box(box):
     #Fit this particular box to find the cosomology
     #Grab the data
     lM_bins = []
     N_data = []
-    covs = []
+    icovs = []
     for i in range(N_z):
         lM_bins_i, lM, N_i, err, cov_i = get_testbox_data(box,i)
         lM_bins.append(lM_bins_i)
         N_data.append(N_i)
-        covs.append(cov_i)
+        icovs.append(np.linalg.inv(cov_i))
     #create the sampler
     #set the initial walker locations to be scattered around the truth
     truth = testbox_cosmos[box]
-    print truth
-    print lnprior(truth)
-    print get_cosmo_dict(truth)
+    do_maximize(truth, [lM_bins, N_data, icovs], emu_list, redshifts, scale_factors, truth)
 
 if __name__ == "__main__":
     fit_box(0)
