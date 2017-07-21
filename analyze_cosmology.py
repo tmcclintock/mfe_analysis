@@ -66,7 +66,7 @@ def lnprob(params, data, emu_list, zs, sfs):
     if not np.isfinite(lpr): return -np.inf
     return lpr + lnlike(params, data, emu_list, zs, sfs)
 
-def do_maximize(params, data, emu_list, zs, sfs, truth):
+def do_minimize(params, data, emu_list, zs, sfs, truth):
     import scipy.optimize as op
     lnprob_args = (data, emu_list, zs, sfs)
     nll = lambda *args: -lnprob(*args)
@@ -91,7 +91,7 @@ def fit_box(box):
     #create the sampler
     #set the initial walker locations to be scattered around the truth
     truth = testbox_cosmos[box]
-    do_maximize(truth, [lM_bins, N_data, icovs], emu_list, redshifts, scale_factors, truth)
+    do_minimize(truth, [lM_bins, N_data, icovs], emu_list, redshifts, scale_factors, truth)
 
 if __name__ == "__main__":
     fit_box(0)
