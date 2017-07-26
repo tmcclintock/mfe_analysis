@@ -34,14 +34,16 @@ fig, axarr = plt.subplots(2, sharex=True)
 BOX=12
 for i in range(BOX,BOX+1):
     cosmo_dict = get_cosmo_dict(i)
-
+    TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[0])
     for j in range(N_z):
         if j <2: continue
         lM_bins, lM, N, err, cov = get_sim_data(i,j)
         axarr[0].errorbar(lM, N, err, marker='.', ls='', c=colors[j], alpha=1.0, label=r"$z=%.1f$"%redshifts[j])
 
         #Now get the BF and plot it.
-        TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
+        TMF_model.redshift = redshifts[j]
+        TMF_model.scale_factor = scale_factors[j]
+        TMF_model.build_splines()
         d,e,f,g,B = get_params(best_fit_models[i], scale_factors[j])
         TMF_model.set_parameters(d,e,f,g,B)
         N_bf = volume * TMF_model.n_in_bins(lM_bins)
@@ -71,7 +73,7 @@ axarr[1].set_ylim(-.08, .08)
 leg = axarr[0].legend(loc=0, fontsize=8, numpoints=1, frameon=False)
 leg.get_frame().set_alpha(0.5)
 plt.subplots_adjust(bottom=0.15, left=0.19, hspace=0.0)
-fig.savefig("pdf_figures/fig_BF.pdf")
+#fig.savefig("pdf_figures/fig_BF.pdf")
 #fig.savefig("fig_BF.png")
 plt.show()
 plt.clf()
