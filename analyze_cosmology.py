@@ -41,7 +41,6 @@ def lnprior(params):
     #Ombh2 Omch2 w0 ns H0 Neff sigma8
     ombh2, omch2, w0, ns, H0, Neff, sigma8 = params
     if ombh2 < 0 or omch2 < 0 or w0 > 0 or ns < 0 or H0 < 0 or Neff < 0 or sigma8 < 0: return -np.inf #enforce these signs
-    #Could get the MF params and have a prior on that...
     return 0
 
 def lnlike(params, data, emu_list, zs, sfs):
@@ -49,11 +48,14 @@ def lnlike(params, data, emu_list, zs, sfs):
     emu_model = predict_parameters(params, emu_list, mean_models, R=R, use_george=usegeorge)
     lM_bins_all, N_data, icovs = data
     LL = 0
+    TMF_model = TMF.tinker_mass_function(cosmo_dict, zs[0])
     for j in range(len(zs)):
         lM_bins = lM_bins_all[j]
         N = N_data[j]
         icov = icovs[j]
-        TMF_model = TMF.tinker_mass_function(cosmo_dict, zs[j])
+        TMF_model.redshift = zs[j]
+        TMF_model.scale_factor = sfs[j]
+        TMF_model.build_splines()
         d,e,f,g,B = get_params(emu_model, sfs[j])
         TMF_model.set_parameters(d,e,f,g,B)
         N_emu = volume * TMF_model.n_in_bins(lM_bins)
@@ -63,6 +65,7 @@ def lnlike(params, data, emu_list, zs, sfs):
 
 def lnprob(params, data, emu_list, zs, sfs):
     lpr = lnprior(params)
+    print "here"
     if not np.isfinite(lpr): return -np.inf
     return lpr + lnlike(params, data, emu_list, zs, sfs)
 
