@@ -65,9 +65,10 @@ def lnlike(params, data, emu_list, zs, sfs):
 
 def lnprob(params, data, emu_list, zs, sfs):
     lpr = lnprior(params)
-    print "here"
     if not np.isfinite(lpr): return -np.inf
-    return lpr + lnlike(params, data, emu_list, zs, sfs)
+    ret = lpr + lnlike(params, data, emu_list, zs, sfs)
+    if np.isnan(ret): return -np.inf
+    return ret
 
 def do_minimize(params, data, emu_list, zs, sfs, truth):
     import scipy.optimize as op
@@ -78,6 +79,24 @@ def do_minimize(params, data, emu_list, zs, sfs, truth):
     np.savetxt("txt_files/bf_cosmo.txt", result['x'])
     print result
     print "truth = ", truth
+    return
+
+def do_mcmc(params, data, emu_list, zs, sfs, truth):
+    import emcee
+    lnprob_args = (data, emu_list, zs, sfs)
+    ndim = len(params)
+    nwalkers = ndim*2+2
+    nsteps = 2000
+    nburn = 200
+    pos = [params + 1e-3*np.random.randn(ndim) for k in range(nwalkers)]
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=lnprob_args, threads=4)
+    sampler.run_mcmc(pos, nsteps)
+    likes = sampler.flatlnprobability
+    fullchain = sampler.flatchain
+    np.savetxt("txt_files/chains/emucosmo_chain.txt", fullchain)
+    chain = fullchain[nburn*nwalkers:]
+    out = np.array([np.means(chain, 0), np.std(chain, 0)]).T
+    np.savetxt("analysis_output.txt", out)
     return
 
 def fit_box(box):
@@ -94,7 +113,8 @@ def fit_box(box):
     #create the sampler
     #set the initial walker locations to be scattered around the truth
     truth = testbox_cosmos[box]
-    do_minimize(truth, [lM_bins, N_data, icovs], emu_list, redshifts, scale_factors, truth)
+    #do_minimize(truth, [lM_bins, N_data, icovs], emu_list, redshifts, scale_factors, truth)
+    do_mcmc(truth, [lM_bins, N_data, icovs], emu_list, redshifts, scale_factors, truth)
 
 if __name__ == "__main__":
     fit_box(0)
