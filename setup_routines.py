@@ -8,7 +8,7 @@ import sys, os, emulator
 import george
 
 #Paths to the building boxes
-base = "../../Desktop/all_MF_data/building_MF_data/"#"../Mass-Function-Emulator/test_data/"
+base = "../../all_MF_data/building_MF_data/"#"../Mass-Function-Emulator/test_data/"
 datapath = base+"N_data/Box%03d_full/Box%03d_full_Z%d.txt"
 covpath  = base+"covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 def get_basepaths():

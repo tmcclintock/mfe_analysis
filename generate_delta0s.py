@@ -231,6 +231,7 @@ def plot_bigDelta():
 def stats_on_Delta():
     sf, zs = get_sf_and_redshifts()
     data = np.genfromtxt("txt_files/bigDeltas.txt")
+    print data.shape
     z, lM, nu, Delta, eDelta, thei, thej = data.T
     print np.max(Delta), np.min(Delta)
     print data.shape
