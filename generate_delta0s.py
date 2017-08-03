@@ -211,10 +211,10 @@ def plot_bigDelta():
         t = np.array([t0, zs[i]*np.ones_like(t0)]).T
         mu, cov = gp.predict(ZEROS, t)
         err = np.sqrt(np.diag(cov))
-        plt.plot(t, mu, c=colors[i])
-        plt.fill_between(t0, mu-err, mu+err, color=colors[i], alpha=0.1,zorder=-(i-10))
-        #for j in range(3):
-        #    plt.plot(t0, gp.sample_conditional(ZEROS, t), c=colors[i], ls='-', zorder=-(i-10), alpha=0.2)
+        #plt.plot(t, mu, c=colors[i])
+        #plt.fill_between(t0, mu-err, mu+err, color=colors[i], alpha=0.1,zorder=-(i-10))
+        for j in range(3):
+            plt.plot(t0, gp.sample_conditional(ZEROS, t), c=colors[i], ls='-', zorder=-(i-10), alpha=0.2)
     plt.axhline(-0.01, c='k', ls='--')
     plt.axhline(0.01, c='k', ls='--')
     plt.axhline(0.0, c='k', ls='-')
