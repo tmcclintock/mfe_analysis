@@ -116,5 +116,12 @@ def fit_box(box):
     #do_minimize(truth, [lM_bins, N_data, icovs], emu_list, redshifts, scale_factors, truth)
     do_mcmc(truth, [lM_bins, N_data, icovs], emu_list, redshifts, scale_factors, truth)
 
+def see_corner(box):
+    chain = np.loadtxt("txt_files/chain_emucosmo_chain.txt")
+    import corner
+    import matplotlib.pyplot as plt
+    fig = corner.corner(chain)
+    plt.show()
+
 if __name__ == "__main__":
     fit_box(0)

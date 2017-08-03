@@ -15,7 +15,7 @@ def get_basepaths():
     return [base, datapath, covpath]
 
 #Paths to the test boxes
-base2 = "../../Desktop/all_MF_data/Test_NM_data/averaged_mf_data/"#"../../all_MF_data/Test_NM_data/averaged_mf_data/"
+base2 = "../../all_MF_data/Test_NM_data/averaged_mf_data/"#"../../all_MF_data/Test_NM_data/averaged_mf_data/"
 datapath2 = base2+"full_mf_data/TestBox%03d/TestBox%03d_mean_Z%d.txt"
 covpath2  = base2+"covariances/TestBox%03d_cov/TestBox%03d_cov_Z%d.txt"
 def get_testbox_paths():
