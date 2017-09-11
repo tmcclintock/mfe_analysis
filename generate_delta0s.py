@@ -159,7 +159,9 @@ def plot_Delta_scatter():
     #good = np.where(np.fabs(Delta) < 0.5)
     #data = data[good]
     z, lM, nu, Delta, eDelta, thei, thej = data.T
-    x = nu
+    use_nu = True
+    if use_nu: x = nu
+    else: x = lM
     for i in range(len(colors)):
         inds = np.where(z == zs[i])[0]
         plt.scatter(x[inds], Delta[inds], alpha=0.2, marker='.', c=colors[i])
@@ -167,11 +169,15 @@ def plot_Delta_scatter():
     plt.axhline(0.01, c='k', ls='--')
     plt.axhline(0.0, c='k', ls='-')
     plt.ylim(-0.1, 0.1)
-    plt.xlim(0,7)
-    plt.xlabel(r"$\nu$", fontsize=24)
+    if use_nu:
+        plt.xlim(0.8,6)
+        plt.xlabel(r"$\nu$", fontsize=24)
+    else:
+        plt.xlabel(r"$\log_{10}M\ [{\rm M_\odot}/h]$")
     plt.ylabel(r"$\Delta N/N_{\rm emu}$", fontsize=24)
     plt.subplots_adjust(bottom=0.15, left=0.2)
     plt.savefig("Delta_scatter.png")
+    plt.savefig("fig_Delta_scatter.pdf")
     plt.show()
 
 def plot_bigDelta():
@@ -255,5 +261,5 @@ if __name__ == "__main__":
     #fit_delta0()
     #get_bigdelta()
     stats_on_Delta()
-    #plot_Delta_scatter()
-    plot_bigDelta()
+    plot_Delta_scatter()
+    #plot_bigDelta()
