@@ -8,14 +8,14 @@ import sys, os, emulator
 import george
 
 #Paths to the building boxes
-base = "../../all_MF_data/building_MF_data/"#"../Mass-Function-Emulator/test_data/"
-datapath = base+"N_data/Box%03d_full/Box%03d_full_Z%d.txt"
-covpath  = base+"covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
+base = "../../all_MF_data/building_data/"#"../Mass-Function-Emulator/test_data/"
+datapath = base+"/Box%03d/Box%03d_Z%d.txt"
+covpath  = base+base+"/Box%03d/Box%03d_cov_Z%d.txt"#"covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 def get_basepaths():
     return [base, datapath, covpath]
 
 #Paths to the test boxes
-base2 = "../../all_MF_data/Test_NM_data/averaged_mf_data/"#"../../all_MF_data/Test_NM_data/averaged_mf_data/"
+base2 = "../../all_MF_data/test_data/averaged_mf_data/"#"../../all_MF_data/Test_NM_data/averaged_mf_data/"
 datapath2 = base2+"full_mf_data/TestBox%03d/TestBox%03d_mean_Z%d.txt"
 covpath2  = base2+"covariances/TestBox%03d_cov/TestBox%03d_cov_Z%d.txt"
 def get_testbox_paths():
@@ -57,7 +57,7 @@ def get_testbox_cosmo_dict(index):
                   "s8":sigma8, "ns":ns, "w0":w0, "wa":0.0}
     return cosmo_dict
 
-def get_building_cosmos(remove_As=True, drop39=True):
+def get_building_cosmos(remove_As=True, drop39=False):
     building_cosmos = np.delete(cosmologies, 0, 1) #Delete boxnum
     if remove_As:
         building_cosmos = np.delete(building_cosmos, 4, 1) #Delete ln10As

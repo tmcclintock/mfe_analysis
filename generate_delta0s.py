@@ -185,7 +185,7 @@ def plot_bigDelta():
     sf, zs = get_sf_and_redshifts()
     np.random.seed(12345666)
     data = np.genfromtxt("txt_files/bigDeltas.txt")
-    L = len(data)/3
+    L = len(data)
     newdata = np.random.permutation(data)[:L]
     nu = newdata[:,2]
     Delta = newdata[:,3]
@@ -199,9 +199,10 @@ def plot_bigDelta():
     aDelta = np.fabs(Delta)
     print np.mean(Delta), np.mean(eDelta), max(nu), min(nu)
     import george
-    k,l = 1e-2, 3.5
-    metric = l*np.ones_like(x[0])
-    metric = np.array([0.537, 0.81318])
+    #k,l = 1e-2, 3.5
+    k = 9.44e-4 #found via optimization
+    #metric = l*np.ones_like(x[0])
+    metric = np.array([0.537, 0.81318]) #found via optimization
     kernel = k*george.kernels.ExpSquaredKernel(metric=metric, ndim=2)
     gp = george.GP(kernel)#, mean=np.mean(Delta))
     print "computing with george"
@@ -212,24 +213,28 @@ def plot_bigDelta():
     print gp.kernel
     for i in range(len(colors)):
         inds = np.where(z == zs[i])[0]
+        plt.scatter(x0[inds], Delta[inds], alpha=0.2, marker='.', c=colors[i], s=2)
         #plt.errorbar(x0[inds], Delta[inds], eDelta[inds], alpha=0.1, ls='', marker='.', zorder=-1, c=colors[i])
         t0 = np.linspace(min(x0)-1, max(x0)+1, 100)
         t = np.array([t0, zs[i]*np.ones_like(t0)]).T
-        mu, cov = gp.predict(ZEROS, t)
+        Y_PRED = Delta
+        #Y_PRED = ZEROS
+        mu, cov = gp.predict(Y_PRED, t)
         err = np.sqrt(np.diag(cov))
         #plt.plot(t, mu, c=colors[i])
-        #plt.fill_between(t0, mu-err, mu+err, color=colors[i], alpha=0.1,zorder=-(i-10))
-        for j in range(3):
-            plt.plot(t0, gp.sample_conditional(ZEROS, t), c=colors[i], ls='-', zorder=-(i-10), alpha=0.2)
+        if i==2 or i==9:
+            print zs
+            plt.fill_between(t0, mu-err, mu+err, color=colors[i], alpha=0.1,zorder=-(i-10))
+            #for j in range(3):
+            #    plt.plot(t0, gp.sample_conditional(Y_PRED, t), c=colors[i], ls='-', zorder=-(i-10), alpha=0.2)
     plt.axhline(-0.01, c='k', ls='--')
     plt.axhline(0.01, c='k', ls='--')
     plt.axhline(0.0, c='k', ls='-')
-    plt.axvline(max(x0), c='g', ls='-')
-    plt.axvline(min(x0), c='g', ls='-')
     plt.ylim(-0.1, 0.1)
-    plt.xlim(0,7)
+    plt.xlim(min(x0),max(x0))
     plt.xlabel(r"$\nu$", fontsize=24)
-    plt.ylabel(r"$\Delta N/N_{\rm emu}$", fontsize=24)
+    #plt.ylabel(r"$\Delta N/N_{\rm emu}$", fontsize=24)
+    plt.ylabel(r"$R_{\rm T08}$", fontsize=24)
     plt.subplots_adjust(left=0.2, bottom=0.15)
     plt.gcf().savefig("Delta_emu.png")
     plt.show()
@@ -261,5 +266,5 @@ if __name__ == "__main__":
     #fit_delta0()
     #get_bigdelta()
     stats_on_Delta()
-    plot_Delta_scatter()
-    #plot_bigDelta()
+    #plot_Delta_scatter()
+    plot_bigDelta()
