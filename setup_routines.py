@@ -4,20 +4,21 @@ get the cosmology, get redshifts, etc.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import sys, os, emulator
+import sys, os#, emulator
 import george
+import scipy.optimize as op
 
 #Paths to the building boxes
-base = "../../all_MF_data/building_data/"#"../Mass-Function-Emulator/test_data/"
+base = "/Users/tmcclintock/Github/Aemulus_data/mass_functions/building_boxes"#"../Mass-Function-Emulator/test_data/"
 datapath = base+"/Box%03d/Box%03d_Z%d.txt"
-covpath  = base+base+"/Box%03d/Box%03d_cov_Z%d.txt"#"covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
+covpath  = base+"/Box%03d/Box%03d_cov_Z%d.txt"#"covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 def get_basepaths():
     return [base, datapath, covpath]
 
 #Paths to the test boxes
-base2 = "../../all_MF_data/test_data/averaged_mf_data/"#"../../all_MF_data/Test_NM_data/averaged_mf_data/"
-datapath2 = base2+"full_mf_data/TestBox%03d/TestBox%03d_mean_Z%d.txt"
-covpath2  = base2+"covariances/TestBox%03d_cov/TestBox%03d_cov_Z%d.txt"
+base2 = "/Users/tmcclintock/Github/Aemulus_data/mass_functions/test_boxes/averaged/"
+datapath2 = base2+"TestBox%03d/TestBox%03d_mean_Z%d.txt"
+covpath2  = base2+"TestBox%03d/TestBox%03d_cov_Z%d.txt"
 def get_testbox_paths():
     return [base2, datapath2, covpath2]
 
@@ -45,7 +46,7 @@ def get_cosmo_dict(index):
     num,ombh2,omch2,w0,ns,ln10As,H0,Neff,sigma8 = cosmologies[index]
     h = H0/100.
     Ob,Om = ombh2/(h**2), ombh2/(h**2)+omch2/(h**2)
-    cosmo_dict = {"om":Om, "ob":Ob, "ol":1-Om, "ok":0.0, "h":h, 
+    cosmo_dict = {"Neff":Neff,"om":Om, "ob":Ob, "ol":1-Om, "ok":0.0, "h":h, 
                   "s8":sigma8, "ns":ns, "w0":w0, "wa":0.0}
     return cosmo_dict
 
@@ -61,8 +62,8 @@ def get_building_cosmos(remove_As=True, drop39=False):
     building_cosmos = np.delete(cosmologies, 0, 1) #Delete boxnum
     if remove_As:
         building_cosmos = np.delete(building_cosmos, 4, 1) #Delete ln10As
-    if drop39:
-        building_cosmos = np.delete(building_cosmos, -1, 0)#39 is broken
+    #if drop39:
+    #    building_cosmos = np.delete(building_cosmos, -1, 0)#39 is broken
     return building_cosmos
 
 def get_testbox_cosmos():
@@ -101,6 +102,7 @@ def get_params(model, sf, name='dfg'):
     e = e0 + k*e1
     f = f0 + k*f1
     g = g0 + k*g1
+    #print k, sf, d0, d1, d
     return d,e,f,g,B
 
 def get_all_fits(name='dfg'):
@@ -155,12 +157,24 @@ def train(training_cosmos, training_data, training_errs, use_george=False):
     for i in range(N_emulators):
         y = training_data[:, i]
         yerr = training_errs[:, i]
+        print y.shape, yerr.shape
         if use_george:
             lguess = (np.max(training_cosmos,0) - np.min(training_cosmos,0))/N_cosmos
-            kernel = 1.*george.kernels.ExpSquaredKernel(metric=lguess, ndim=len(training_cosmos[0])) + george.kernels.WhiteKernel(1, ndim=len(training_cosmos[0]))
-            gp = george.GP(kernel)
+            kernel = 1.*george.kernels.ExpSquaredKernel(metric=lguess, ndim=len(training_cosmos[0]))
+            #kernel = 1.*george.kernels.ExpSquaredKernel(metric=lguess, ndim=len(training_cosmos[0])) + george.kernels.WhiteKernel(1, ndim=len(training_cosmos[0]))
+            gp = george.GP(kernel, mean=np.mean(y), fit_mean=True, white_noise=np.log(np.mean(yerr)**2), fit_white_noise=True)
             gp.compute(training_cosmos, yerr)
-            gp.optimize(training_cosmos, y, yerr, verbose=False)
+            def nll(p):
+                gp.set_parameter_vector(p)
+                ll = gp.lnlikelihood(y, quiet=True)
+                return -ll if np.isfinite(ll) else 1e25
+            def grad_nll(p):
+                gp.set_parameter_vector(p)
+                return -gp.grad_lnlikelihood(y, quiet=True)
+            p0 = gp.get_parameter_vector()
+            results = op.minimize(nll, p0, jac=grad_nll)
+            #gp.optimize(training_cosmos, y, yerr, verbose=False)
+            gp.set_parameter_vector(results.x)
             emulator_list.append(gp)
         else:
             emu = emulator.Emulator(name="emu%d"%i, xdata=training_cosmos, ydata=y, yerr=yerr)
@@ -176,6 +190,9 @@ def predict_parameters(cosmology, emu_list, training_data, use_george=False, R=N
     else:
         params = np.array([emu.predict_one_point(cosmology)[0] for emu in emu_list])
     if R is None: return params #Not using rotated version
+    #print cosmology
+    #print params.flatten()
+    #print np.dot(R, params).flatten()
     return np.dot(R, params)
 
 def realization(cosmology, emu_list, training_data, use_george=False, R=None):

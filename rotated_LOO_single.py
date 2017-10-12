@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 plt.rc('text', usetex=True)
 plt.rc('font', size=20)
 import tinker_mass_function as TMF
-import sys, os, emulator
+import sys, os#, emulator
 import cosmocalc as cc
 from setup_routines import *
 
@@ -37,7 +37,7 @@ def get_bG(cosmo_dict, a, Masses):
 def get_nu(a, Masses):
     return 1.686/np.array([cc.sigmaMtophat(Mi, a) for Mi in Masses])
 
-BOX = 0
+BOX = 2
 for i in range(BOX, BOX+1):
     fig, axarr = plt.subplots(2, sharex=True)
     cosmo_dict = get_cosmo_dict(i)
@@ -55,7 +55,7 @@ for i in range(BOX, BOX+1):
 
 
     for j in range(0,N_z):
-        if j < 2: continue
+        if j >0: continue
         lM_bins, lM, N, err, cov = get_sim_data(i,j)
         nu = get_nu(scale_factors[j], 10**lM)
         if Xisnu: domain = nu
@@ -64,8 +64,11 @@ for i in range(BOX, BOX+1):
         #Get emulated curves
         TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
         d,e,f,g,B = get_params(emu_model, scale_factors[j], name=name)
+        print scale_factors[j], d,e,f,g,B
         TMF_model.set_parameters(d,e,f,g,B)
         N_bf = volume * TMF_model.n_in_bins(lM_bins)
+        print TMF_model.dndlM(np.log(1e14))
+        print "sigma = ",TMF_model.sigmaM_spline(1e14)
 
         dN_N = (N-N_bf)/N_bf
         pd  = dN_N
