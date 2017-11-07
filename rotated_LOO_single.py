@@ -55,7 +55,7 @@ for i in range(BOX, BOX+1):
 
 
     for j in range(0,N_z):
-        if j >0: continue
+        if j < 2: continue
         lM_bins, lM, N, err, cov = get_sim_data(i,j)
         nu = get_nu(scale_factors[j], 10**lM)
         if Xisnu: domain = nu
@@ -64,11 +64,11 @@ for i in range(BOX, BOX+1):
         #Get emulated curves
         TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
         d,e,f,g,B = get_params(emu_model, scale_factors[j], name=name)
-        print scale_factors[j], d,e,f,g,B
+        #print scale_factors[j], d,e,f,g,B
         TMF_model.set_parameters(d,e,f,g,B)
         N_bf = volume * TMF_model.n_in_bins(lM_bins)
-        print TMF_model.dndlM(np.log(1e14))
-        print "sigma = ",TMF_model.sigmaM_spline(1e14)
+        #print TMF_model.dndlM(np.log(1e14))
+        #print "sigma = ",TMF_model.sigmaM_spline(1e14)
 
         dN_N = (N-N_bf)/N_bf
         pd  = dN_N

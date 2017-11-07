@@ -7,9 +7,10 @@ import matplotlib.pyplot as plt
 plt.rc('text', usetex=True)
 plt.rc('font', size=20)
 import tinker_mass_function as TMF
-import sys, os, emulator
+import sys, os
 import cosmocalc as cc
 from setup_routines import *
+import scipy.optimize as op
 
 usegeorge = True
 
@@ -148,17 +149,17 @@ def get_bigdelta():
             zinds = np.concatenate((zinds, thesezs))
         print "Got bigDeltas for box%03d"%i
     out = np.array([zs, lMs, nus, Deltas, eDeltas, siminds, zinds]).T
-    np.savetxt("txt_files/bigDeltas.txt", out)
+    #np.savetxt("txt_files/bigDeltas.txt", out)
     return
 
 def plot_Delta_scatter():
     colors = get_colors()
     sf, zs = get_sf_and_redshifts()
-    data = np.genfromtxt("txt_files/bigDeltas.txt")
-    z, lM, nu, Delta, eDelta, thei, thej = data.T
+    z, lM, nu, Delta, eDelta, thei, thej = np.genfromtxt("R_T08.txt", unpack=True)
+    #z, lM, nu, Delta, eDelta, thei, thej = data.T
     #good = np.where(np.fabs(Delta) < 0.5)
     #data = data[good]
-    z, lM, nu, Delta, eDelta, thei, thej = data.T
+    #z, lM, nu, Delta, eDelta, thei, thej = data.T
     use_nu = True
     if use_nu: x = nu
     else: x = lM
@@ -184,7 +185,8 @@ def plot_bigDelta():
     colors = get_colors()
     sf, zs = get_sf_and_redshifts()
     np.random.seed(12345666)
-    data = np.genfromtxt("txt_files/bigDeltas.txt")
+    data = np.genfromtxt("R_T08.txt")
+    #data = np.genfromtxt("txt_files/bigDeltas.txt")
     L = len(data)
     newdata = np.random.permutation(data)[:L]
     nu = newdata[:,2]
@@ -200,15 +202,26 @@ def plot_bigDelta():
     print np.mean(Delta), np.mean(eDelta), max(nu), min(nu)
     import george
     #k,l = 1e-2, 3.5
-    k = 9.44e-4 #found via optimization
+    k = george.kernels.ConstantKernel(log_constant= -7.4627695322, ndim=2, axes=np.array([0, 1]))
     #metric = l*np.ones_like(x[0])
-    metric = np.array([0.537, 0.81318]) #found via optimization
+    metric = np.array([ 0.45806604,  1.2785944 ]) #found via optimization
     kernel = k*george.kernels.ExpSquaredKernel(metric=metric, ndim=2)
     gp = george.GP(kernel)#, mean=np.mean(Delta))
     print "computing with george"
     gp.compute(x=x, yerr=eDelta)
     print "One compute done"
-    #gp.optimize(x=x, y=Delta, yerr=eDelta)
+    def nll(p):
+        gp.set_parameter_vector(p)
+        ll = gp.lnlikelihood(y=Delta, quiet=True)
+        #ll = gp.lnlikelihood(y=Delta*0, quiet=True)
+        return -ll if np.isfinite(ll) else 1e25
+    def grad_nll(p):
+        gp.set_parameter_vector(p)
+        return -gp.grad_lnlikelihood(y=Delta, quiet=True)
+        #return -gp.grad_lnlikelihood(y=Delta*0, quiet=True)
+    #p0 = gp.get_parameter_vector()
+    #results = op.minimize(nll, p0, jac=grad_nll)
+    #gp.set_parameter_vector(results.x)
     print "george optimized"
     print gp.kernel
     for i in range(len(colors)):
@@ -241,7 +254,8 @@ def plot_bigDelta():
 
 def stats_on_Delta():
     sf, zs = get_sf_and_redshifts()
-    data = np.genfromtxt("txt_files/bigDeltas.txt")
+    data = np.genfromtxt("R_T08.txt")
+    #data = np.genfromtxt("txt_files/bigDeltas.txt")
     print data.shape
     z, lM, nu, Delta, eDelta, thei, thej = data.T
     print np.max(Delta), np.min(Delta)
