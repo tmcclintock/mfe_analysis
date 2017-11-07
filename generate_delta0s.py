@@ -186,42 +186,35 @@ def plot_bigDelta():
     sf, zs = get_sf_and_redshifts()
     np.random.seed(12345666)
     data = np.genfromtxt("R_T08.txt")
-    #data = np.genfromtxt("txt_files/bigDeltas.txt")
     L = len(data)
     newdata = np.random.permutation(data)[:L]
     nu = newdata[:,2]
     Delta = newdata[:,3]
-    #inds = np.where(np.fabs(Delta) < 10)[0]
-    #newdata = newdata[inds]
     z, lM, nu, Delta, eDelta, thei, thej = data.T
     x = np.array([nu,z]).T
     x0 = nu
-    print x.shape
     ZEROS = np.zeros_like(Delta)
     aDelta = np.fabs(Delta)
-    print np.mean(Delta), np.mean(eDelta), max(nu), min(nu)
     import george
-    #k,l = 1e-2, 3.5
     k = george.kernels.ConstantKernel(log_constant= -7.4627695322, ndim=2, axes=np.array([0, 1]))
-    #metric = l*np.ones_like(x[0])
     metric = np.array([ 0.45806604,  1.2785944 ]) #found via optimization
     kernel = k*george.kernels.ExpSquaredKernel(metric=metric, ndim=2)
-    gp = george.GP(kernel)#, mean=np.mean(Delta))
+    gp = george.GP(kernel, mean=0, fit_white_noise=True)
     print "computing with george"
     gp.compute(x=x, yerr=eDelta)
     print "One compute done"
     def nll(p):
         gp.set_parameter_vector(p)
         ll = gp.lnlikelihood(y=Delta, quiet=True)
-        #ll = gp.lnlikelihood(y=Delta*0, quiet=True)
+        #ll = gp.lnlikelihood(y=ZEROS, quiet=True)
         return -ll if np.isfinite(ll) else 1e25
     def grad_nll(p):
         gp.set_parameter_vector(p)
         return -gp.grad_lnlikelihood(y=Delta, quiet=True)
-        #return -gp.grad_lnlikelihood(y=Delta*0, quiet=True)
-    #p0 = gp.get_parameter_vector()
-    #results = op.minimize(nll, p0, jac=grad_nll)
-    #gp.set_parameter_vector(results.x)
+        #return -gp.grad_lnlikelihood(y=ZEROS, quiet=True)
+    p0 = gp.get_parameter_vector()
+    results = op.minimize(nll, p0, jac=grad_nll)
+    gp.set_parameter_vector(results.x)
     print "george optimized"
     print gp.kernel
     for i in range(len(colors)):
