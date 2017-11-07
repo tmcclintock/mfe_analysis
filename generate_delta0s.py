@@ -196,10 +196,11 @@ def plot_bigDelta():
     ZEROS = np.zeros_like(Delta)
     aDelta = np.fabs(Delta)
     import george
-    k = george.kernels.ConstantKernel(log_constant= -7.4627695322, ndim=2, axes=np.array([0, 1]))
-    metric = np.array([ 0.45806604,  1.2785944 ]) #found via optimization
-    kernel = k*george.kernels.ExpSquaredKernel(metric=metric, ndim=2)
-    gp = george.GP(kernel, mean=0, fit_white_noise=True)
+    kernel = george.kernels.ConstantKernel(log_constant= -7.4627695322, ndim=2, axes=np.array([0, 1]))*george.kernels.ExpSquaredKernel(metric=[ 0.45806604,1.2785944 ], ndim=2) #found via optimization
+    #kernel = george.kernels.ConstantKernel(log_constant= -9.00757602254, ndim=2, axes=np.array([0, 1]))*george.kernels.ExpKernel(metric=[38.06392505,183.16130106], ndim=2)
+    #kernel = george.kernels.ConstantKernel(log_constant= -9.00757602254, ndim=2, axes=np.array([0, 1]))*george.kernels.Matern52Kernel(metric=[38.06392505,183.16130106], ndim=2)
+    #kernel = george.kernels.ConstantKernel(log_constant= -9.00757602254, ndim=2, axes=np.array([0, 1]))*george.kernels.Matern32Kernel(metric=[38.06392505,183.16130106], ndim=2)
+    gp = george.GP(kernel, fit_mean=True, fit_white_noise=True)
     print "computing with george"
     gp.compute(x=x, yerr=eDelta)
     print "One compute done"
