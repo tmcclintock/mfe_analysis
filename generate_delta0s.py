@@ -51,10 +51,11 @@ def plot_bigDelta():
     err  = np.sqrt(np.sum(w*eDelta**2)/sum(w)) #Weighted stddev
     metric =[ 0.45806604,1.2785944] #Found via optimization
     kernel = ConstantKernel(log_constant= -7.4627695322, ndim=2)*ExpSquaredKernel(metric=[ 0.45806604,1.2785944], ndim=2) #found via optimization
-    #kernel = ConstantKernel(log_constant= -7.4627695322, ndim=2)*ExpSquaredKernel(metric=[ 0.45806604e-3,1.2785944e0], ndim=2) #found via optimization
 
     #kernel = ConstantKernel(log_constant= c, ndim=2)*ExpSquaredKernel(metric=metric, ndim=2) + ConstantKernel(log_constant= c, ndim=2)*Matern52Kernel(metric=metric, ndim=2)
     #kernel = ConstantKernel(log_constant=-5.71365221669, ndim=2) * ExpSquaredKernel(metric=[  1.89259881e+00,   1.47400726e+10], ndim=2) + ConstantKernel(log_constant=-9.81035792396, ndim=2) * Matern52Kernel(metric=[ 0.56007193,  1.02191441], ndim=2)
+
+    kernel = ConstantKernel(log_constant=-2.28175693044, ndim=2, axes=[0, 1]) * ExpSquaredKernel(metric=[  2.42300961,  33.55973206], ndim=2, axes=[0, 1])
     
     gp = george.GP(kernel)#, fit_mean=True)#, fit_white_noise=True)
     print "computing with george"
@@ -63,8 +64,8 @@ def plot_bigDelta():
     gp.compute(x=x, yerr=yerr)
     print "One compute done"
     y = np.fabs(Delta)
-    y = Delta**2
-    y = Delta
+    #y = Delta**2
+    #y = Delta
     def nll(p):
         gp.set_parameter_vector(p)
         ll = gp.lnlikelihood(y=y, quiet=True)
@@ -73,34 +74,39 @@ def plot_bigDelta():
         gp.set_parameter_vector(p)
         return -gp.grad_lnlikelihood(y=y, quiet=True)
     p0 = gp.get_parameter_vector()
-    results = op.minimize(nll, p0, jac=grad_nll)
-    p0 = results.x
+    #results = op.minimize(nll, p0, jac=grad_nll)
+    #p0 = results.x
     gp.set_parameter_vector(p0)
     print "george optimized"
     print gp.kernel
     
     for i in range(len(colors)):
         inds = (z==zs[i])
-        if i ==9:
-            plt.scatter(x0[inds], Delta[inds], alpha=0.2, marker='.', c=colors[i], s=2)
+        #if i ==9:
+        plt.scatter(x0[inds], Delta[inds], alpha=0.8, marker='.', c=colors[i], s=2)
             #plt.errorbar(x0[inds], Delta[inds], eDelta[inds], alpha=0.1, ls='', marker='.', markersize=1, zorder=-1, c=colors[i])
         inds = (z==zs[i])*(nu > 1)*(nu<2)
         w = 1./eDelta[inds]**2
         print i, np.sum(w*Delta[inds])/sum(w), np.sqrt(np.sum(w*eDelta[inds]**2)/sum(w))
-        t0 = np.linspace(min(x0)-1, max(x0)+1, 100)
+        t0 = np.linspace(min(nu)-1, max(nu)+1, 100)
         t = np.array([t0, zs[i]*np.ones_like(t0)]).T
         Y_PRED = y
         #Y_PRED = Delta
         #Y_PRED = np.sqrt(Delta**2)
-        Y_PRED = ZEROS
+        #Y_PRED = ZEROS
         mu, cov = gp.predict(Y_PRED, t)
         err = np.sqrt(np.diag(cov))
         #plt.plot(t, mu, c=colors[i])
         if i==3 or i==9:
-            plt.fill_between(t0, mu-err, mu+err, color=colors[i], alpha=0.1,zorder=-(i-10))
+            plt.fill_between(t0, -mu, +mu, color=colors[i], alpha=0.5,zorder=-10-i)
+            #plt.fill_between(t0, mu-err, mu+err, color=colors[i], alpha=1,zorder=-(i-10))
+            #plt.fill_between(t0, -err, err, color=colors[i], alpha=0.1,zorder=-(i-10))
 
             for j in range(10):
-                plt.plot(t0, gp.sample_conditional(Y_PRED, t), c=colors[i], ls='-', zorder=-(i-10), alpha=0.2)
+                ccc = np.outer(mu, mu)
+                plt.plot(t0, np.random.multivariate_normal(mu*0, np.diag(mu**2)), c=colors[i], ls='-', zorder=-(i-10), alpha=0.2)
+                #plt.plot(t0, np.random.multivariate_normal(mu*0, ccc), c=colors[i], ls='-', zorder=-(i-10), alpha=0.2)
+                #plt.plot(t0, gp.sample_conditional(Y_PRED, t), c=colors[i], ls='-', zorder=-(i-10), alpha=0.2)
 
     plt.axhline(-0.01, c='k', ls='--')
     plt.axhline(0.01, c='k', ls='--')
