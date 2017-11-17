@@ -56,7 +56,7 @@ def plot_bigDelta():
     #kernel = ConstantKernel(log_constant= c, ndim=2)*ExpSquaredKernel(metric=metric, ndim=2) + ConstantKernel(log_constant= c, ndim=2)*Matern52Kernel(metric=metric, ndim=2)
     #kernel = ConstantKernel(log_constant=-5.71365221669, ndim=2) * ExpSquaredKernel(metric=[  1.89259881e+00,   1.47400726e+10], ndim=2) + ConstantKernel(log_constant=-9.81035792396, ndim=2) * Matern52Kernel(metric=[ 0.56007193,  1.02191441], ndim=2)
     
-    gp = george.GP(kernel, mean=0.0)#, fit_white_noise=True)
+    gp = george.GP(kernel)#, fit_mean=True)#, fit_white_noise=True)
     print "computing with george"
     yerr = eDelta
     #yerr = np.sqrt(4*Delta**2*eDelta**2) #work with residuals squared
