@@ -11,6 +11,9 @@ import sys, os
 import cosmocalc as cc
 from setup_routines import *
 import scipy.optimize as op
+import george
+from george.kernels import *
+from george import Metric
 
 usegeorge = True
 
@@ -29,158 +32,6 @@ building_cosmos = get_building_cosmos()
 name = 'dfg'
 mean_models, err_models, R = get_rotated_fits(name)
 
-def get_bG(a, Masses):
-    return cc.growth_function(a)*np.array([cc.tinker2010_bias(Mi, a, 200) for Mi in Masses])
-
-def get_nu(a, Masses):
-    return 1.686/np.array([cc.sigmaMtophat(Mi, a) for Mi in Masses])
-
-def make_delta0():
-    for i in range(0,N_cosmos):
-        delta0 = []
-        edelta0 = []
-        nus = []
-        cosmo_dict = get_cosmo_dict(i)
-        
-        test_cosmo = building_cosmos[i]
-        test_data  = mean_models[i]
-        test_err   = err_models[i]
-        training_cosmos = np.delete(building_cosmos, i, 0)
-        training_data   = np.delete(mean_models, i, 0)
-        training_errs   = np.delete(err_models, i, 0)
-        
-        #Train the emulators
-        emu_list = train(training_cosmos, training_data, training_errs, use_george=usegeorge)
-        emu_model = predict_parameters(test_cosmo, emu_list, training_data, R=R, use_george=usegeorge)
-
-        for j in range(N_z):
-            lM_bins, lM, N, err, cov = get_sim_data(i,j)
-            outcov = np.zeros_like(cov)
-
-            #Get emulated curves
-            TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
-            d,e,f,g,B = get_params(emu_model, scale_factors[j])
-            TMF_model.set_parameters(d,e,f,g,B)
-            N_bf = volume * TMF_model.n_in_bins(lM_bins)
-            bG = get_bG(scale_factors[j], 10**lM)
-            pd = (N-N_bf)/N_bf
-            pde  = err/N_bf
-            Delta = pd/bG
-            Deltae = pde/bG
-            nu = get_nu(scale_factors[j], 10**lM)
-            delta0  = np.concatenate((delta0, Delta))
-            edelta0 = np.concatenate((edelta0, Deltae))
-            nus     = np.concatenate((nus, nu))
-            for ii in range(len(cov)):
-                for jj in range(len(cov[ii])):
-                    outcov[ii,jj] = cov[ii,jj]/(N_bf[ii]*bG[ii] * N_bf[jj]*bG[jj])
-            np.savetxt("txt_files/bgcov_%03d_z%d.txt"%(i,j), outcov)
-        out = np.array([nus,delta0,edelta0]).T
-        np.savetxt("txt_files/delta_%03d.txt"%i, out)
-        print "Saved deltas for %03d"%i
-    return
-
-def fit_delta0():
-    d0s = np.zeros(N_cosmos)
-    ed0s= np.zeros(N_cosmos)
-    for i in range(0,N_cosmos):
-        data = np.loadtxt("txt_files/delta_%03d.txt"%i)
-        start = 0
-        d0j = np.zeros(N_z)
-        vd0j = np.zeros(N_z)
-        for j in range(0,N_z):
-            cov = np.loadtxt("txt_files/bgcov_%03d_z%d.txt"%(i,j))
-            icov = np.linalg.inv(cov)
-            nu,d,_ = data[start:start+len(cov)].T
-            A = np.ones_like(nu)
-            var = np.dot(A, np.dot(icov, A))**-1
-            rhs = np.dot(A, np.dot(icov, d))
-            d0j[j] = np.dot(var, rhs)
-            vd0j[j] = var
-            start += len(cov)
-        d0s[i] = np.average(d0j, weights=vd0j)
-        ed0s[i] = np.sqrt(np.mean(vd0j))
-        print i, d0s[i], ed0s[i]
-    out = np.array([d0s, ed0s]).T
-    np.savetxt("txt_files/delta0.txt", out)
-    print "delta0s saved"
-    plt.hist(d0s, 20)
-    plt.show()
-
-def get_bigdelta():
-    Deltas = []
-    eDeltas = []
-    nus = []
-    lMs = []
-    zs = []
-    siminds = []
-    zinds = []
-    for i in range(0,N_cosmos):
-        cosmo_dict = get_cosmo_dict(i)
-        test_cosmo = building_cosmos[i]
-        test_data  = mean_models[i]
-        test_err   = err_models[i]
-        training_cosmos = np.delete(building_cosmos, i, 0)
-        training_data   = np.delete(mean_models, i, 0)
-        training_errs   = np.delete(err_models, i, 0)
-        #Train the emulators
-        emu_list = train(training_cosmos, training_data, training_errs, use_george=usegeorge)
-        emu_model = predict_parameters(test_cosmo, emu_list, training_data, R=R, use_george=usegeorge)
-        for j in range(N_z):
-            lM_bins, lM, N, err, cov = get_sim_data(i,j)
-            #Get emulated curves
-            TMF_model = TMF.tinker_mass_function(cosmo_dict, redshifts[j])
-            d,e,f,g,B = get_params(emu_model, scale_factors[j])
-            TMF_model.set_parameters(d,e,f,g,B)
-            N_bf = volume * TMF_model.n_in_bins(lM_bins)
-            bG = get_bG(scale_factors[j], 10**lM)
-            Delta = (N-N_bf)/N_bf #- bG*delta0
-            eDelta = err/N_bf
-            nu = get_nu(scale_factors[j], 10**lM)
-            Deltas = np.concatenate((Deltas, Delta))
-            eDeltas = np.concatenate((eDeltas, eDelta))
-            this_z = np.ones_like(nu)*redshifts[j]
-            thissim = np.ones_like(nu)*i
-            thesezs = np.ones_like(nu)*j
-            nus = np.concatenate((nus, nu))
-            lMs = np.concatenate((lMs, lM))
-            zs = np.concatenate((zs, this_z))
-            siminds = np.concatenate((siminds, thissim))
-            zinds = np.concatenate((zinds, thesezs))
-        print "Got bigDeltas for box%03d"%i
-    out = np.array([zs, lMs, nus, Deltas, eDeltas, siminds, zinds]).T
-    #np.savetxt("txt_files/bigDeltas.txt", out)
-    return
-
-def plot_Delta_scatter():
-    colors = get_colors()
-    sf, zs = get_sf_and_redshifts()
-    z, lM, nu, Delta, eDelta, thei, thej = np.genfromtxt("R_T08.txt", unpack=True)
-    #z, lM, nu, Delta, eDelta, thei, thej = data.T
-    #good = np.where(np.fabs(Delta) < 0.5)
-    #data = data[good]
-    #z, lM, nu, Delta, eDelta, thei, thej = data.T
-    use_nu = True
-    if use_nu: x = nu
-    else: x = lM
-    for i in range(len(colors)):
-        inds = np.where(z == zs[i])[0]
-        plt.scatter(x[inds], Delta[inds], alpha=0.2, marker='.', c=colors[i])
-    plt.axhline(-0.01, c='k', ls='--')
-    plt.axhline(0.01, c='k', ls='--')
-    plt.axhline(0.0, c='k', ls='-')
-    plt.ylim(-0.1, 0.1)
-    if use_nu:
-        plt.xlim(0.8,6)
-        plt.xlabel(r"$\nu$", fontsize=24)
-    else:
-        plt.xlabel(r"$\log_{10}M\ [{\rm M_\odot}/h]$")
-    plt.ylabel(r"$\Delta N/N_{\rm emu}$", fontsize=24)
-    plt.subplots_adjust(bottom=0.15, left=0.2)
-    plt.savefig("Delta_scatter.png")
-    plt.savefig("fig_Delta_scatter.pdf")
-    plt.show()
-
 def plot_bigDelta():
     colors = get_colors()
     sf, zs = get_sf_and_redshifts()
@@ -194,46 +45,63 @@ def plot_bigDelta():
     x = np.array([nu,z]).T
     x0 = nu
     ZEROS = np.zeros_like(Delta)
-    aDelta = np.fabs(Delta)
-    import george
-    kernel = george.kernels.ConstantKernel(log_constant= -7.4627695322, ndim=2, axes=np.array([0, 1]))*george.kernels.ExpSquaredKernel(metric=[ 0.45806604,1.2785944 ], ndim=2) #found via optimization
-    #kernel = george.kernels.ConstantKernel(log_constant= -9.00757602254, ndim=2, axes=np.array([0, 1]))*george.kernels.ExpKernel(metric=[38.06392505,183.16130106], ndim=2)
-    #kernel = george.kernels.ConstantKernel(log_constant= -9.00757602254, ndim=2, axes=np.array([0, 1]))*george.kernels.Matern52Kernel(metric=[38.06392505,183.16130106], ndim=2)
-    #kernel = george.kernels.ConstantKernel(log_constant= -9.00757602254, ndim=2, axes=np.array([0, 1]))*george.kernels.Matern32Kernel(metric=[38.06392505,183.16130106], ndim=2)
-    gp = george.GP(kernel, fit_mean=True, fit_white_noise=True)
+    c = -7.4627695322
+    w = 1./eDelta**2
+    mean = np.sum(w*Delta)/sum(w)
+    err  = np.sqrt(np.sum(w*eDelta**2)/sum(w)) #Weighted stddev
+    metric =[ 0.45806604,1.2785944] #Found via optimization
+    kernel = ConstantKernel(log_constant= -7.4627695322, ndim=2)*ExpSquaredKernel(metric=[ 0.45806604,1.2785944], ndim=2) #found via optimization
+    #kernel = ConstantKernel(log_constant= -7.4627695322, ndim=2)*ExpSquaredKernel(metric=[ 0.45806604e-3,1.2785944e0], ndim=2) #found via optimization
+
+    #kernel = ConstantKernel(log_constant= c, ndim=2)*ExpSquaredKernel(metric=metric, ndim=2) + ConstantKernel(log_constant= c, ndim=2)*Matern52Kernel(metric=metric, ndim=2)
+    #kernel = ConstantKernel(log_constant=-5.71365221669, ndim=2) * ExpSquaredKernel(metric=[  1.89259881e+00,   1.47400726e+10], ndim=2) + ConstantKernel(log_constant=-9.81035792396, ndim=2) * Matern52Kernel(metric=[ 0.56007193,  1.02191441], ndim=2)
+    
+    gp = george.GP(kernel, mean=0.0)#, fit_white_noise=True)
     print "computing with george"
-    gp.compute(x=x, yerr=eDelta)
+    yerr = eDelta
+    #yerr = np.sqrt(4*Delta**2*eDelta**2) #work with residuals squared
+    gp.compute(x=x, yerr=yerr)
     print "One compute done"
+    y = np.fabs(Delta)
+    y = Delta**2
+    y = Delta
     def nll(p):
         gp.set_parameter_vector(p)
-        ll = gp.lnlikelihood(y=Delta, quiet=True)
-        #ll = gp.lnlikelihood(y=ZEROS, quiet=True)
+        ll = gp.lnlikelihood(y=y, quiet=True)
         return -ll if np.isfinite(ll) else 1e25
     def grad_nll(p):
         gp.set_parameter_vector(p)
-        return -gp.grad_lnlikelihood(y=Delta, quiet=True)
-        #return -gp.grad_lnlikelihood(y=ZEROS, quiet=True)
+        return -gp.grad_lnlikelihood(y=y, quiet=True)
     p0 = gp.get_parameter_vector()
     results = op.minimize(nll, p0, jac=grad_nll)
-    gp.set_parameter_vector(results.x)
+    p0 = results.x
+    gp.set_parameter_vector(p0)
     print "george optimized"
     print gp.kernel
+    
     for i in range(len(colors)):
-        inds = np.where(z == zs[i])[0]
-        plt.scatter(x0[inds], Delta[inds], alpha=0.2, marker='.', c=colors[i], s=2)
-        #plt.errorbar(x0[inds], Delta[inds], eDelta[inds], alpha=0.1, ls='', marker='.', zorder=-1, c=colors[i])
+        inds = (z==zs[i])
+        if i ==9:
+            plt.scatter(x0[inds], Delta[inds], alpha=0.2, marker='.', c=colors[i], s=2)
+            #plt.errorbar(x0[inds], Delta[inds], eDelta[inds], alpha=0.1, ls='', marker='.', markersize=1, zorder=-1, c=colors[i])
+        inds = (z==zs[i])*(nu > 1)*(nu<2)
+        w = 1./eDelta[inds]**2
+        print i, np.sum(w*Delta[inds])/sum(w), np.sqrt(np.sum(w*eDelta[inds]**2)/sum(w))
         t0 = np.linspace(min(x0)-1, max(x0)+1, 100)
         t = np.array([t0, zs[i]*np.ones_like(t0)]).T
-        Y_PRED = Delta
-        #Y_PRED = ZEROS
+        Y_PRED = y
+        #Y_PRED = Delta
+        #Y_PRED = np.sqrt(Delta**2)
+        Y_PRED = ZEROS
         mu, cov = gp.predict(Y_PRED, t)
         err = np.sqrt(np.diag(cov))
         #plt.plot(t, mu, c=colors[i])
-        if i==2 or i==9:
-            print zs
+        if i==3 or i==9:
             plt.fill_between(t0, mu-err, mu+err, color=colors[i], alpha=0.1,zorder=-(i-10))
-            #for j in range(3):
-            #    plt.plot(t0, gp.sample_conditional(Y_PRED, t), c=colors[i], ls='-', zorder=-(i-10), alpha=0.2)
+
+            for j in range(10):
+                plt.plot(t0, gp.sample_conditional(Y_PRED, t), c=colors[i], ls='-', zorder=-(i-10), alpha=0.2)
+
     plt.axhline(-0.01, c='k', ls='--')
     plt.axhline(0.01, c='k', ls='--')
     plt.axhline(0.0, c='k', ls='-')
@@ -273,6 +141,6 @@ if __name__ == "__main__":
     #make_delta0()
     #fit_delta0()
     #get_bigdelta()
-    stats_on_Delta()
+    #stats_on_Delta()
     #plot_Delta_scatter()
     plot_bigDelta()
